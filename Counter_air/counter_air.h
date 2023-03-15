@@ -34,10 +34,15 @@ namespace open_spiel {
 
         // Constants.
         inline constexpr int kNumPlayers = 2;
-        inline constexpr int kNumRows = 6;
-        inline constexpr int kNumCols = 7;
+        inline constexpr int kNumRows = 2;  //ÄNDRAT
+        inline constexpr int kNumCols = 8;  //ÄNDRAT
         inline constexpr int kNumCells = kNumRows * kNumCols;
-        inline constexpr int kCellStates = 1 + kNumPlayers;  // empty, 'x', and 'o'.
+        inline constexpr int kCellStates = 1 + kNumPlayers;  // empty, 'x', and 'o'. ändra sen
+
+
+        //Board representation:
+        //Row 1: wave, escort, high strike, sead, low strike, hits, maintenance, graveyard #ex: w2 {1, 0, 1, 1} {1,0} {1,0,1} 2 0 {"aaa", "bFighter", "rFighter"}
+        //Row 2: aaa, intercept, active sam, passive sam, airbase, hits, maintenance, graveyard
 
         // https://math.stackexchange.com/questions/485752/tictactoe-state-space-choose-calculation/485852
         inline constexpr int kNumberStates = 5478;
@@ -45,8 +50,14 @@ namespace open_spiel {
         // State of a cell.
         enum class CellState {
             kEmpty,
-            kRed,  // red
-            kBlue,   // blue
+            kAFighter
+            kAUAV
+            kASam
+            kAAAA
+            kEFighter
+            kEUAV
+            kESam
+            kEAAA
         };
 
         // State of an in-play game.
@@ -57,9 +68,7 @@ namespace open_spiel {
             CounterAirState(const CounterAirState&) = default;
             CounterAirState& operator=(const CounterAirState&) = default;
 
-            Player CurrentPlayer() const override {
-                return IsTerminal() ? kTerminalPlayerId : current_player_;
-            }
+            Player CurrentPlayer() const override;
             std::string ActionToString(Player player, Action action_id) const override;
             std::string ToString() const override;
             bool IsTerminal() const override;
@@ -86,10 +95,15 @@ namespace open_spiel {
 
         private:
             bool HasLine(Player player) const;  // Does this player have a line?
-            bool IsFull() const;                // Is the board full?
+            bool IsFull() const;                // Is the board full?     
             Player current_player_ = 0;         // Player zero goes first
             Player outcome_ = kInvalidPlayer;
             int num_moves_ = 0;
+            int blue_pieces = 10; //Hur många pieces blå har kvar att lägga
+            int red_fighters = 4; //Hur många fighters röd har kvar att lägga
+            int red_sams = 4;   //Hur många sams röd har kvar att lägga
+            int phase = 0;  //Vilken phase vi är på
+            int turn = 0;   //Vems tur det är och för phase 0 vilken ruta man är på
         };
 
         // Game object.

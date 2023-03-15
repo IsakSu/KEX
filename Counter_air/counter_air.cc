@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+#define 
+
 #include "open_spiel/spiel_utils.h"
 #include "open_spiel/utils/tensor_view.h"
 
@@ -18,8 +20,8 @@ namespace open_spiel {
 				GameType::Dynamics::kSequential,  //turn based
 				GameType::ChanceMode::kDeterministic, //no chance
 				GameType::Information::kPerfectInformation, //Everyone knows all information about the game
-				GameType::Utility::kZeroSum,                //osäkra
-				GameType::RewardModel::kTerminal,           //Väljer när rewards ska ges
+				GameType::Utility::kZeroSum,                //osï¿½kra
+				GameType::RewardModel::kTerminal,           //Vï¿½ljer nï¿½r rewards ska ges
 				/*max_num_players=*/2,
 				/*min_num_players=*/2,
 				/*provides_information_state_string=*/true, //
@@ -36,27 +38,66 @@ namespace open_spiel {
 			REGISTER_SPIEL_GAME(kGameType, Factory);
 
 		}
-
-		CellState PlayerToState(Player player) {
+		//Ã„ndrat
+		CellState PieceToState(Player player, int piece) {
 			switch (player) {
+			//Blue player is player 0
 			case 0:
-				return CellState::kBlue;
+				switch (piece){
+					case 0:
+					return CellState::kUAV
+					case 1:
+					return CellState::kAFighter
+					case 2:
+					return CellState::kEFighter
+				}
+			//Red player is player 1
 			case 1:
-				return CellState::kRed;
+				switch (piece){
+					case 0:
+					return CellState::kAFighter
+					case 1:
+					return CellState::kEFighter
+					case 2:
+					return CellState::kASam
+					case 3:
+					return CellState::kESam
+					case 4:
+					return CellState::kAAAA
+					case 5:
+					return CellState::kEAAA
+					default:
+					SpielFatalError(absl::StrCat("Invalid player id ", player));
+					return CellState::kEmpty;
+
+				}
 			default:
 				SpielFatalError(absl::StrCat("Invalid player id ", player));
 				return CellState::kEmpty;
 			}
 		}
-
+		//Ã„ndrat
 		std::string StateToString(CellState state) {
 			switch (state) {
 			case CellState::kEmpty:
 				return ".";
-			case CellState::kRed:
-				return "r";
-			case CellState::kBlue:
-				return "b";
+			case CellState::kAFigher:
+				return "1";
+			case CellState::kEFigher:
+				return "0";	
+			case CellState::kAUAV:
+				return "1";
+			case CellState::kEUAV:
+				return "0";
+			case CellState::kASam:
+				return "1";
+			case CellState::kESam:
+				return "0";
+			case CellState::kAAAA:
+				return "1";
+			case CellState::kEAAA:
+				return "0";
+			
 			default:
 				SpielFatalError("Unknown state.");
 			}
@@ -66,105 +107,6 @@ namespace open_spiel {
 			CellState c, int cell, int Points, int direction = 0) {
 			int ActiveCol = cell % 7;
 			bool LastRow = false;
-			if (cell > 34)
-			{
-				LastRow = true;
-			}
-			if (Points < 3)
-			{
-				if (cell < 42) {
-					if (direction == 0)
-					{
-						switch (ActiveCol)
-						{
-						case 0:
-							if (board[cell + 1] == c) { if (CheckPoints(board, c, cell + 1, Points + 1, 1)) { return true; } }
-							if (LastRow == false)
-							{
-								if (board[cell + 7] == c) { if (CheckPoints(board, c, cell + 7, Points + 1, 7)) { return true; } }
-								if (board[cell + 8] == c) { if (CheckPoints(board, c, cell + 8, Points + 1, 8)) { return true; } }
-							}
-							break;
-						case 6:
-							if (LastRow == false)
-							{
-								if (board[cell + 7] == c)
-								{
-									CheckPoints(board, c, cell + 7, Points + 1, 7);
-								}
-								if (board[cell + 6] == c)
-								{
-									CheckPoints(board, c, cell + 6, Points + 1, 6);
-								}
-							}
-							break;
-
-						default:
-							if (LastRow == false)
-							{
-								if (board[cell + 7] == c)
-								{
-									if ((CheckPoints(board, c, cell + 7, Points + 1, 7))) { return true; }
-								}
-								if (board[cell + 6] == c)
-								{
-									if (CheckPoints(board, c, cell + 6, Points + 1, 6)) { return true; }
-								}
-								if (board[cell + 8] == c)
-								{
-									if (CheckPoints(board, c, cell + 8, Points + 1, 8)) { return true; }
-								}
-							}
-							if (board[cell + 1] == c)
-							{
-								if (CheckPoints(board, c, cell + 1, Points + 1, 1)) { return true; }
-							}
-
-						}
-					}
-					else { //när vi har diagonalt vid en kant blir det knas
-						if (LastRow == false)
-						{
-							switch (ActiveCol)
-							{
-							case 0:
-								if (direction != 7)
-								{
-									if (board[cell + direction] == c)
-									{
-										if (CheckPoints(board, c, cell + direction, Points + 1, direction)) { return true; }
-									}
-								}
-								break;
-							case 6:
-								if (direction != 1 && direction != 8)
-								{
-									if (board[cell + direction] == c)
-									{
-										if (CheckPoints(board, c, cell + direction, Points + 1, direction)) { return true; }
-									}
-								}
-								break;
-							default:
-								if (board[cell + direction] == c)
-								{
-									if (CheckPoints(board, c, cell + direction, Points + 1, direction)) { return true; }
-								}
-							
-							}
-						}
-						else if(direction == 1 && ActiveCol != 6){
-							if (board[cell + direction] == c) {
-								if (CheckPoints(board, c, cell + direction, Points + 1, direction)) { return true; }
-							}
-						}
-					}
-				}
-			}
-			else {
-				return true;
-			}
-			return false;
 		}
 
 		//SLUTET
@@ -190,42 +132,70 @@ namespace open_spiel {
 			return HasWon;
 		}
 
+		Player CounterAirState::CurrentPlayer() const {
+			if(phase == 0)
+			{
+				if(blue_pieces != 0)
+				{
+					return Player{0};
+				}
+				else
+				{
+					if(red_sams != 0)
+					{
+						return Player {1};
+					}
+					else
+					{
+						phase = 2;
+						return Player{0};
+					}
+				}
+			}
+
+		}
+
 		void CounterAirState::DoApplyAction(Action move) {
-			SPIEL_CHECK_EQ(board_[move], CellState::kEmpty); //Kollar om platsen är tom
-			board_[move] = PlayerToState(CurrentPlayer());  //Sätter ut spelarens symbol på vald plats på brädet
+			SPIEL_CHECK_EQ(board_[move], CellState::kEmpty); //Kollar om platsen ï¿½r tom
+			board_[move] = PlayerToState(CurrentPlayer());  //Sï¿½tter ut spelarens symbol pï¿½ vald plats pï¿½ brï¿½det
 
 			if (HasLine(current_player_)) {   //Om current player har vunnit
 				outcome_ = current_player_;
 			}
-			current_player_ = 1 - current_player_; //Uppdaterar vilken spelare som kör
-			num_moves_ += 1;  //håller koll på hur många moves som har körts
+			current_player_ = 1 - current_player_; //Uppdaterar vilken spelare som kï¿½r
+			num_moves_ += 1;  //hï¿½ller koll pï¿½ hur mï¿½nga moves som har kï¿½rts
 		}
 
-		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen är counterAirState och metod är LegalActions
-			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa över
+		//Ã„ndrar
+		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen ï¿½r counterAirState och metod ï¿½r LegalActions
+			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa ï¿½ver
 			// Can move in any empty cell.
 			std::vector<Action> moves;    //Skapar en array med action antal element
-			for (int cell = 0; cell < kNumCells; ++cell) {
-				if (board_[cell] == CellState::kEmpty) {
-					if (cell >= 35)
-					{
-						moves.push_back(cell);
+			
+			if(phase = 0)
+			{
+				switch(CurrentPlayer())
+				{
+				case 0:
+					for(int amount = 0; amount <= blue_pieces; amount++) {
+						moves.push_back(amount);
 					}
-					else if (board_[cell + 7] != CellState::kEmpty)
-					{
-						moves.push_back(cell);
-					}
+				case 1:
+					for(int amount = 0; amount <= red_sams amount++) {
+							moves.push_back(amount);
+						}
 				}
 			}
+
 			return moves;
 		}
 
 		std::string CounterAirState::ActionToString(Player player,
 			Action action_id) const {
-			return game_->ActionToString(player, action_id);                      //Game_ är game som skapade vårt state
+			return game_->ActionToString(player, action_id);                      //Game_ ï¿½r game som skapade vï¿½rt state
 		}
 
-		//Returnerar dem olika sätten att vinna
+		//Returnerar dem olika sï¿½tten att vinna
 		bool CounterAirState::HasLine(Player player) const {
 			return BoardHasLine(board_, player);
 		}
