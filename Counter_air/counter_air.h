@@ -34,11 +34,31 @@ namespace open_spiel {
 
         // Constants.
         inline constexpr int kNumPlayers = 2;
-        inline constexpr int kNumRows = 2;  //ÄNDRAT
-        inline constexpr int kNumCols = 8;  //ÄNDRAT
-        inline constexpr int kNumCells = kNumRows * kNumCols;
+        inline constexpr int kRows = 2;  //ÄNDRAT
+        inline constexpr int kCols = 12;  //ÄNDRAT
+        inline constexpr int kNumCells = kRows * kCols;
         inline constexpr int kCellStates = 1 + kNumPlayers;  // empty, 'x', and 'o'. ändra sen
 
+        int num_moves_ = 0;
+        int blue_pieces = 10; //Hur många pieces blå har kvar att lägga
+        int red_fighters = 4; //Hur många fighters röd har kvar att lägga
+        int red_sams = 4;   //Hur många sams röd har kvar att lägga
+        int phase = 0;  //Vilken phase vi är på
+        int turn = 1;   //Vems tur det är och för phase 0 vilken ruta man är på
+
+        bool was_blue = true;
+        bool initilazation = true;
+
+        //phase 2
+        int attacked_space = 0;
+
+        bool blue_finished_shooting = true;
+        bool red_finished_shooting = true;
+        bool attacked = false;
+        bool has_attacked = false;
+
+        std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
+        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Airbase", "Hits", "Mainenance", "Graveyard"};
 
         //Board representation:
         //Row 1: wave, escort, high strike, sead, low strike, hits, maintenance, graveyard #ex: w2 {1, 0, 1, 1} {1,0} {1,0,1} 2 0 {"aaa", "bFighter", "rFighter"}
@@ -49,15 +69,26 @@ namespace open_spiel {
 
         // State of a cell.
         enum class CellState {
-            kEmpty,
-            kAFighter
-            kAUAV
-            kASam
-            kAAAA
-            kEFighter
-            kEUAV
-            kESam
-            kEAAA
+            /*kEmpty,
+            kAFighter,
+            kAUAV,
+            kASam,
+            kAAAA,
+            kEFighter,
+            kEUAV,
+            kESam,
+            kEAAA,*/
+            kZero,
+            kOne,
+            kTwo,
+            kThree,
+            kFour,
+            kFive,
+            kSix,
+            kSeven,
+            kEight,
+            kNine,
+            kTen,
         };
 
         // State of an in-play game.
@@ -78,32 +109,26 @@ namespace open_spiel {
             void ObservationTensor(Player player,
                 absl::Span<float> values) const override;
             std::unique_ptr<State> Clone() const override;
-            void UndoAction(Player player, Action move) override;
+            /*void UndoAction(Player player, Action move) override;*/
             std::vector<Action> LegalActions() const override;
             CellState BoardAt(int cell) const { return board_[cell]; }
             CellState BoardAt(int row, int column) const {
-                return board_[row * kNumCols + column];
+                return board_[row * kCols + column];
             }
             Player outcome() const { return outcome_; }
 
             // Only used by Ultimate Tic-Tac-Toe.
-            void SetCurrentPlayer(Player player) { current_player_ = player; }
+            void SetCurrentPlayer(Player player){ current_player_ = player; }
 
         protected:
             std::array<CellState, kNumCells> board_;
             void DoApplyAction(Action move) override;
+            void TakenHit(int player, int space, int evade);
 
         private:
-            bool HasLine(Player player) const;  // Does this player have a line?
-            bool IsFull() const;                // Is the board full?     
+            bool HasLine(Player player) const;  // Does this player have a line? 
             Player current_player_ = 0;         // Player zero goes first
             Player outcome_ = kInvalidPlayer;
-            int num_moves_ = 0;
-            int blue_pieces = 10; //Hur många pieces blå har kvar att lägga
-            int red_fighters = 4; //Hur många fighters röd har kvar att lägga
-            int red_sams = 4;   //Hur många sams röd har kvar att lägga
-            int phase = 0;  //Vilken phase vi är på
-            int turn = 0;   //Vems tur det är och för phase 0 vilken ruta man är på
         };
 
         // Game object.
@@ -119,13 +144,13 @@ namespace open_spiel {
    	    absl::optional<double> UtilitySum() const override { return 0; }
             double MaxUtility() const override { return 2; }
             std::vector<int> ObservationTensorShape() const override {
-                return { kCellStates, kNumRows, kNumCols };
+                return { kCellStates, kRows, kCols };
             }
             int MaxGameLength() const override { return kNumCells; }
             std::string ActionToString(Player player, Action action_id) const override;
         };
 
-        CellState PlayerToState(Player player);
+        CellState PieceToState(Player player, int piece);
         std::string StateToString(CellState state);
 
         // Does this player have a line?
