@@ -52,8 +52,8 @@ namespace open_spiel {
         //phase 2
         int attacked_space = 0;
 
-        bool blue_finished_shooting = true;
-        bool red_finished_shooting = true;
+        bool blue_finished_shooting = false;
+        bool red_finished_shooting = false;
         bool attacked = false;
         bool has_attacked = false;
 
@@ -61,8 +61,9 @@ namespace open_spiel {
         "A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Airbase", "Hits", "Mainenance", "Graveyard"};
 
         //Board representation:
-        //Row 1: wave, escort, high strike, sead, low strike, hits, maintenance, graveyard #ex: w2 {1, 0, 1, 1} {1,0} {1,0,1} 2 0 {"aaa", "bFighter", "rFighter"}
-        //Row 2: aaa, intercept, active sam, passive sam, airbase, hits, maintenance, graveyard
+        //Wave is index 0, A Escort is 1 and so on
+        //{"Wave0", "A Escort1", "E Escort2", "A High Strike3", "E High Strike4", "A Sead5", "E sead6", "A Low Strike7", "E Low Strike8", "Hits9", "Maintenance10", "Graveyard11",
+        //"A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Airbase", "Hits", "Mainenance", "Graveyard"}
 
         // https://math.stackexchange.com/questions/485752/tictactoe-state-space-choose-calculation/485852
         inline constexpr int kNumberStates = 5478;
@@ -165,3 +166,4 @@ namespace open_spiel {
 }  // namespace open_spiel
 
 #endif  // OPEN_SPIEL_GAMES_COUNTER_AIR_H_
+

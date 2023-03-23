@@ -242,28 +242,23 @@ namespace open_spiel {
 		}
 
 		void CounterAirState::DoApplyAction(Action move) {
-			if(initilazation == true){
+			//First phase of the game (put your pieces on the board)
+			if(phase == 0) {
 				board_[0] = PieceToState(1);
 				board_[12] = PieceToState(4);
 				board_[14] = PieceToState(4);
-				initilazation = false;
-			}
-			//First phase of the game (put your pieces on the board)
-			if(phase == 0) {
 				switch(CurrentPlayer()) {
 					case 0:
-							move = move + std::stoi(StateToString(BoardAt(turn)));
 							board_[turn] = PieceToState(move);
 							blue_pieces = blue_pieces - move;
-							turn = turn + 2;
 						break;
 					case 1:
 							//move = move + std::stoi(StateToString(BoardAt(kCols + 3 + turn)));
 							board_[kCols + 3 + turn] = PieceToState(move);
 							red_sams = red_sams - move;
-							turn = turn + 2;
 						break;
 				}
+				turn = turn + 2;
 			}
 			//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
 			else if (phase == 2){
@@ -333,7 +328,7 @@ namespace open_spiel {
 		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen �r counterAirState och metod �r LegalActions
 			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa �ver
 			// Can move in any empty cell.
-			std::vector<Action> moves;    //Skapar en array med action antal element
+			std::vector<Action> moves;    //Skapar en vector med alla legal moves
 			if(phase == 0)
 			{
 				switch(CurrentPlayer())
@@ -450,7 +445,7 @@ namespace open_spiel {
 							absl::StrAppend(&str, "R: ");
 						}					
 					}
-					absl::StrAppend(&str, cell_names[r*kCols + c] + ": " + StateToString(BoardAt(r,c)) + " | ");
+					absl::StrAppend(&str, cell_names[r*kCols + c] + ": " + StateToString(BoardAt(r,c)) + " |");
 				}
 				if (r < (kRows - 1)) {
 					absl::StrAppend(&str, "\n");
@@ -524,4 +519,5 @@ namespace open_spiel {
 
 	}  // namespace counter_air
 }  // namespace open_spiel
+
 
