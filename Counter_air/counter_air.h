@@ -44,7 +44,9 @@ namespace open_spiel {
         int red_fighters = 4; //Hur många fighters röd har kvar att lägga
         int red_sams = 4;   //Hur många sams röd har kvar att lägga
         int phase = 0;  //Vilken phase vi är på
-        int turn = 1;   //Vems tur det är och för phase 0 vilken ruta man är på
+        int turn = -1;   //Vems tur det är och för phase 0 vilken ruta man är på
+
+        int count = 1;
 
         bool was_blue = true;
         bool initilazation = true;
@@ -52,10 +54,9 @@ namespace open_spiel {
         //phase 2
         int attacked_space = 0;
 
-        bool blue_finished_shooting = true;
-        bool red_finished_shooting = true;
+        bool blue_finished_shooting = false;
+        bool red_finished_shooting = false;
         bool attacked = false;
-        bool has_attacked = false;
 
         std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
         "A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Airbase", "Hits", "Mainenance", "Graveyard"};
@@ -66,30 +67,6 @@ namespace open_spiel {
 
         // https://math.stackexchange.com/questions/485752/tictactoe-state-space-choose-calculation/485852
         inline constexpr int kNumberStates = 5478;
-
-        // State of a cell.
-        enum class CellState {
-            /*kEmpty,
-            kAFighter,
-            kAUAV,
-            kASam,
-            kAAAA,
-            kEFighter,
-            kEUAV,
-            kESam,
-            kEAAA,*/
-            kZero,
-            kOne,
-            kTwo,
-            kThree,
-            kFour,
-            kFive,
-            kSix,
-            kSeven,
-            kEight,
-            kNine,
-            kTen,
-        };
 
         // State of an in-play game.
         class CounterAirState : public State {
@@ -111,17 +88,17 @@ namespace open_spiel {
             std::unique_ptr<State> Clone() const override;
             /*void UndoAction(Player player, Action move) override;*/
             std::vector<Action> LegalActions() const override;
-            CellState BoardAt(int cell) const { return board_[cell]; }
+            /*CellState BoardAt(int cell) const { return board_[cell]; }
             CellState BoardAt(int row, int column) const {
                 return board_[row * kCols + column];
-            }
+            }*/
             Player outcome() const { return outcome_; }
 
             // Only used by Ultimate Tic-Tac-Toe.
             void SetCurrentPlayer(Player player){ current_player_ = player; }
 
         protected:
-            std::array<CellState, kNumCells> board_;
+            std::array<int, kNumCells> board_;
             void DoApplyAction(Action move) override;
             void TakenHit(int player, int space, int evade);
 
@@ -150,15 +127,12 @@ namespace open_spiel {
             std::string ActionToString(Player player, Action action_id) const override;
         };
 
-        CellState PieceToState(Player player, int piece);
-        std::string StateToString(CellState state);
-
         // Does this player have a line?
-        bool BoardHasLine(const std::array<CellState, kNumCells>& board,
+        bool BoardHasLine(const std::array<int, kNumCells>& board,
             const Player player);
 
-        inline std::ostream& operator<<(std::ostream& stream, const CellState& state) {
-            return stream << StateToString(state);
+        inline std::ostream& operator<<(std::ostream& stream, const int& state) {
+            return stream << std::to_string(state);
         }
 
     }  // namespace counter_air
