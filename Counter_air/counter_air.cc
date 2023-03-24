@@ -1,4 +1,3 @@
-
 #include "open_spiel/games/counter_air.h"
 
 #include <algorithm>
@@ -37,116 +36,24 @@ namespace open_spiel {
 			REGISTER_SPIEL_GAME(kGameType, Factory);
 
 		}
-		//Ändrat
-		CellState PieceToState(int amount) {
-			/*switch (player) {
-			//Blue player is player 0
-			case 0:
-				switch (piece){
-					case 0:
-					return CellState::kAUAV;
-					case 1:
-					return CellState::kAFighter;
-					case 2:
-					return CellState::kEFighter;
-				}
-			//Red player is player 1
-			case 1:
-				switch (piece){
-					case 0:
-					return CellState::kAFighter;
-					case 1:
-					return CellState::kEFighter;
-					case 2:
-					return CellState::kASam;
-					case 3:
-					return CellState::kESam;
-					case 4:
-					return CellState::kAAAA;
-					case 5:
-					return CellState::kEAAA;
-					default:
-					SpielFatalError(absl::StrCat("Invalid player id ", player));
-					return CellState::kEmpty;
 
-				}
-			default:
-				SpielFatalError(absl::StrCat("Invalid player id ", player));
-				return CellState::kEmpty;
-			}*/
-			switch (amount) {
-				case 0:
-					return CellState::kZero;
-				case 1:
-					return CellState::kOne;
-				case 2:
-					return CellState::kTwo;
-				case 3:
-					return CellState::kThree;
-				case 4:
-					return CellState::kFour;
-				case 5:
-					return CellState::kFive;
-				case 6:
-					return CellState::kSix;
-				case 7:
-					return CellState::kSeven;
-				case 8:
-					return CellState::kEight;
-				case 9:
-					return CellState::kNine;
-				case 10:
-					return CellState::kTen;
-					
-				default:
-					SpielFatalError(absl::StrCat("Invalid move", amount));
-					return CellState::kZero;
-			}
-		}
-		//Ändrat
-		std::string StateToString(CellState state) {
-			switch (state) {
-			case CellState::kZero:
-				return "0";
-			case CellState::kOne:
-				return "1";
-			case CellState::kTwo:
-				return "2";	
-			case CellState::kThree:
-				return "3";
-			case CellState::kFour:
-				return "4";
-			case CellState::kFive:
-				return "5";
-			case CellState::kSix:
-				return "6";
-			case CellState::kSeven:
-				return "7";
-			case CellState::kEight:
-				return "8";
-			case CellState::kNine:
-				return "9";
-			case CellState::kTen:
-				return "10";
-			
-			default:
-				SpielFatalError("Unknown state.");
-			}
-		}
 
-		int CheckPoints(const std::array<CellState, kNumCells>& board,
-			CellState c, int cell, int Points, int direction = 0) {
+		int CheckPoints(const std::array<int, kNumCells>& board,
+			int c, int cell, int Points, int direction = 0) {
 			int ActiveCol = cell % 7;
 			bool LastRow = false;
 		}
 
 		//SLUTET
-		bool BoardHasLine(const std::array<CellState, kNumCells>& board,
+		bool BoardHasLine(const std::array<int, kNumCells>& board,
 			const Player player) {
 			
-			if(blue_finished_shooting == true && red_finished_shooting == true){
+			if(blue_finished_shooting == true && red_finished_shooting == true && attacked == false){
 				return true;
-			}
+			}/*
+			if(phase == 2){
+				return true;
+			}*/
 
 			return false;
 		}
@@ -161,7 +68,7 @@ namespace open_spiel {
 				else
 				{
 					if(was_blue == true){
-						turn = 1;
+						turn = -1;
 					}
 					if(red_sams != 0)
 					{
@@ -177,7 +84,7 @@ namespace open_spiel {
 				}
 			}
 			else if (phase == 2) {
-				if(blue_finished_shooting == true && red_finished_shooting == true)
+				if(blue_finished_shooting == true && red_finished_shooting == true && attacked != true)
 				{
 					phase = 3;
 					turn = 0;
@@ -185,24 +92,16 @@ namespace open_spiel {
 				}
 
 				if(turn%2 == 0) {
-					if(blue_finished_shooting == true && red_finished_shooting == false){
+					if(blue_finished_shooting == true && red_finished_shooting == false && attacked != true){
 						return Player{1};
 					}
-					if(has_attacked == true){
-						return Player{1};
-					}else{
-						return Player{0};
-					}
+					return Player{0};
 				}else{
-					if(blue_finished_shooting == false && red_finished_shooting == true)
+					if(blue_finished_shooting == false && red_finished_shooting == true && attacked != true)
 					{
 						return Player{0};
 					}
-					if(has_attacked == true){
-						return Player{0};
-					}else{
-						return Player{1};
-					}
+					return Player{1};
 			}
 
 			}
@@ -211,59 +110,51 @@ namespace open_spiel {
 		void CounterAirState::TakenHit(int player, int space, int evade){
 			if(evade == 1)
 			{
-				if(player == 0)
-				 {
-					board_[9] = PieceToState(std::stoi(StateToString(BoardAt(9))) + 1);
-				 }else{
-					board_[kCols+9] = PieceToState(std::stoi(StateToString(BoardAt(kCols+9))) + 1);
-				 }
-				 board_[space] = PieceToState(std::stoi(StateToString(BoardAt(space))) - 1);
-				 board_[space+1] = PieceToState(std::stoi(StateToString(BoardAt(space+1))) + 1);
+				 board_[player*kCols + 9]++;
+				 board_[space]--;
+				 board_[space+1]++;
 			}else{
-				if(player == 0)
-				 {
-					board_[9] = PieceToState(std::stoi(StateToString(BoardAt(9))) + 2);
-				 }else{
-					board_[kCols+9] = PieceToState(std::stoi(StateToString(BoardAt(kCols+9))) + 2);
-				 }
+					board_[player*kCols + 9]+=2;
 			}
-			if(std::stoi(StateToString(BoardAt(kCols+9))) == 4)
+			if(board_[player*kCols+9] == 4)
 			{
-				board_[space] = PieceToState(std::stoi(StateToString(BoardAt(space))) - 1);
-				if(player == 0)
-				 {
-					board_[9] = PieceToState(0);
-					board_[11] = PieceToState(std::stoi(StateToString(BoardAt(11))) + 1);
-				 }else{
-					board_[kCols+9] = PieceToState(0);
-					board_[kCols+11] = PieceToState(std::stoi(StateToString(BoardAt(kCols+11))) + 1);
-				 }
+				if(evade == 0)
+				{
+					board_[space]--;
+				}else{
+					board_[space+1]--;
+				}
+				board_[player*kCols+9] = 0;
+				board_[player * kCols + 11]++;
 			}
 		}
 
 		void CounterAirState::DoApplyAction(Action move) {
 			if(initilazation == true){
-				board_[0] = PieceToState(1);
-				board_[12] = PieceToState(4);
-				board_[14] = PieceToState(4);
-				initilazation = false;
+				board_[0] = 1;
+				board_[12] = 4;
+				board_[14] = 4;
+				if(count == 3){
+					initilazation = false;
+				}
 			}
 			//First phase of the game (put your pieces on the board)
 			if(phase == 0) {
 				switch(CurrentPlayer()) {
 					case 0:
-							move = move + std::stoi(StateToString(BoardAt(turn)));
-							board_[turn] = PieceToState(move);
-							blue_pieces = blue_pieces - move;
-							turn = turn + 2;
+							board_[turn] = move;
+								blue_pieces = blue_pieces - move;
+
 						break;
 					case 1:
 							//move = move + std::stoi(StateToString(BoardAt(kCols + 3 + turn)));
-							board_[kCols + 3 + turn] = PieceToState(move);
-							red_sams = red_sams - move;
-							turn = turn + 2;
+							board_[kCols + 3 + turn] = move;
+								red_sams = red_sams - move;
+
+							
 						break;
 				}
+				
 			}
 			//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
 			else if (phase == 2){
@@ -272,8 +163,8 @@ namespace open_spiel {
 						//Blue attacks with Armed escorts, can only attack intercepts
 						if (attacked == false){
 							
-							board_[2] = PieceToState(std::stoi(StateToString(BoardAt(2))) - 1);
-							board_[3] = PieceToState(std::stoi(StateToString(BoardAt(3))) + 1);
+							board_[1]--;
+							board_[2]++;
 							attacked = true;
 							turn++;
 						}else{
@@ -285,8 +176,8 @@ namespace open_spiel {
 
 					case 1:
 						if(attacked == false) {
-							board_[kCols + 2] = PieceToState(std::stoi(StateToString(BoardAt(kCols+2))) - 1);
-							board_[kCols + 3] = PieceToState(std::stoi(StateToString(BoardAt(kCols+3))) + 1);
+							board_[kCols + 2]--;
+							board_[kCols + 3]++;
 							attacked = true;
 							turn++;
 							switch(move){
@@ -305,24 +196,27 @@ namespace open_spiel {
 								attacked = false;
 						}
 						break;
+
 				}
+				
 				//If red doesn't have any armed fighters in intercept, neither player can shoot
-				if(std::stoi(StateToString(BoardAt(kCols+2))) == 0)
+				if(board_[kCols+2] == 0)
 				{
 					red_finished_shooting = true;
 					blue_finished_shooting = true;
 				}
 				//If blue doesn't have any armed escorts, blue can no longer shoot
-				if(std::stoi(StateToString(BoardAt(1))) == 0)
+				if(board_[1] == 0)
 				{
 					blue_finished_shooting = true;
 				}
 				//If there are no armed: escorts, high strikes or low strikes. Neither player can shoot
-				if((std::stoi(StateToString(BoardAt(1))) == 0) && (std::stoi(StateToString(BoardAt(3))) == 0) && (std::stoi(StateToString(BoardAt(7))) == 0)){
+				if((board_[1] == 0) && (board_[3] == 0) && (board_[7] == 0)){
 					red_finished_shooting = true;
 					blue_finished_shooting = true;
 				}
 			}
+			count++;
 
 			if (HasLine(current_player_)) {   //Om current player har vunnit
 				outcome_ = current_player_;
@@ -333,12 +227,13 @@ namespace open_spiel {
 		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen �r counterAirState och metod �r LegalActions
 			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa �ver
 			// Can move in any empty cell.
-			std::vector<Action> moves;    //Skapar en array med action antal element
+			std::vector<Action> moves;    //Skapar en vector med alla legal moves
 			if(phase == 0)
 			{
 				switch(CurrentPlayer())
 				{
 				case 0:
+					turn = turn + 2;
 					if(turn == 7){
 						moves.push_back(blue_pieces);
 					}else{
@@ -348,6 +243,7 @@ namespace open_spiel {
 					}
 					break;
 				case 1:
+					turn = turn + 2;
 					if(turn == 3){
 						moves.push_back(red_sams);
 					}else{
@@ -363,7 +259,7 @@ namespace open_spiel {
 				{
 				case 0:
 						if(attacked == true){
-							if(std::stoi(StateToString(BoardAt(9))) == 3)
+							if(board_[9] == 3)
 							{
 								moves.push_back(1);
 							}else{
@@ -371,20 +267,18 @@ namespace open_spiel {
 								moves.push_back(1);
 							}
 						}else{
-						if(std::stoi(StateToString(BoardAt(1))) != 0) {
-							if(std::stoi(StateToString(BoardAt(kCols + 2))) != 0) {
+						if(board_[1] != 0) {
+							if(board_[kCols + 2] != 0) {
 								moves.push_back(1);
 							}else{
 								red_finished_shooting = true;
 							}
-						}else{
-							blue_finished_shooting = true;
 						}
 						}
 					break;
 				case 1:
 						if(attacked == true){
-							if(std::stoi(StateToString(BoardAt(kCols+9))) == 3)
+							if(board_[kCols+9] == 3)
 							{
 								moves.push_back(1);
 							}else{
@@ -392,31 +286,24 @@ namespace open_spiel {
 								moves.push_back(1);
 							}
 						}else{
-						if(std::stoi(StateToString(BoardAt(kCols + 2))) != 0) {
-							if(std::stoi(StateToString(BoardAt(1))) != 0) {
+							if(board_[1] != 0) {
 								moves.push_back(1);
 							}else{
 								blue_finished_shooting = true;
 							}
-							if(std::stoi(StateToString(BoardAt(3))) != 0) {
+							if(board_[3] != 0) {
 								moves.push_back(2);
 							}
-							if(std::stoi(StateToString(BoardAt(7))) != 0) {
+							if(board_[7] != 0) {
 								moves.push_back(3);
 							}
 							if(std::size(moves) == 0){
 								red_finished_shooting = true; blue_finished_shooting = true;
 							}
-						}else{
-							red_finished_shooting = true;
-						}
 						}
 						break;
-					}
 				}
-				/*if(red_finished_shooting == true || blue_finished_shooting == true){
-					return LegalActions();
-				}*/
+			}
 
 
 			return moves;
@@ -434,7 +321,7 @@ namespace open_spiel {
 
 		//konstruktor
 		CounterAirState::CounterAirState(std::shared_ptr<const Game> game) : State(game) {
-			std::fill(begin(board_), end(board_), CellState::kZero);
+			std::fill(begin(board_), end(board_), 0);
 
 		}
  
@@ -450,7 +337,7 @@ namespace open_spiel {
 							absl::StrAppend(&str, "R: ");
 						}					
 					}
-					absl::StrAppend(&str, cell_names[r*kCols + c] + ": " + StateToString(BoardAt(r,c)) + " | ");
+					absl::StrAppend(&str, cell_names[r*kCols + c] + ": " + std::to_string(board_[r*kCols+c]) + " |");
 				}
 				if (r < (kRows - 1)) {
 					absl::StrAppend(&str, "\n");
