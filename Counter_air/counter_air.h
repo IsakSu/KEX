@@ -39,13 +39,13 @@ namespace open_spiel {
         inline constexpr int kNumCells = kRows * kCols;
         inline constexpr int kCellStates = 1 + kNumPlayers;  // empty, 'x', and 'o'. ändra sen
 
+        //phase 0
         int num_moves_ = 0;
         int blue_pieces = 10; //Hur många pieces blå har kvar att lägga
         int red_fighters = 4; //Hur många fighters röd har kvar att lägga
         int red_sams = 4;   //Hur många sams röd har kvar att lägga
         int phase = 0;  //Vilken phase vi är på
         int turn = -1;   //Vems tur det är och för phase 0 vilken ruta man är på
-
         int count = 1;
 
         bool was_blue = true;
@@ -53,6 +53,9 @@ namespace open_spiel {
 
         //phase 2
         int attacked_space = 0;
+
+        //phase 3
+        int attacked_low_strike = 0;
 
         bool blue_finished_shooting = false;
         bool red_finished_shooting = false;
