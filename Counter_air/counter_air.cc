@@ -48,7 +48,7 @@ namespace open_spiel {
 		bool BoardHasLine(const std::array<int, kNumCells>& board,
 			const Player player) {
 			
-			if(blue_finished_shooting == true && red_finished_shooting == true && attacked == false){
+			if(blue_finished_shooting == true && red_finished_shooting == true && attacked == false && phase == 3){
 				return true;
 			}/*
 			if(phase == 2){
@@ -83,11 +83,13 @@ namespace open_spiel {
 					}
 				}
 			}
-			else if (phase == 2) {
+			else if (phase == 2 || phase == 3) {
 				if(blue_finished_shooting == true && red_finished_shooting == true && attacked != true)
 				{
-					phase = 3;
+					phase++;
 					turn = 0;
+					blue_finished_shooting = false;
+					red_finished_shooting = false;
 					return Player{0};
 				}
 
@@ -108,26 +110,38 @@ namespace open_spiel {
 		}
 
 		void CounterAirState::TakenHit(int player, int space, int evade){
-			if(evade == 1)
-			{
-				 board_[player*kCols + 9]++;
-				 board_[space]--;
-				 board_[space+1]++;
+			if (space == kCols){
+				board_[space]--;
+				board_[space+1]++;
+			}else if(phase == 3 && space == 7){
+				board_[player*kCols + 9]++;
 			}else{
-					board_[player*kCols + 9]+=2;
-			}
-			if(board_[player*kCols+9] == 4)
-			{
-				if(evade == 0)
+				if(evade == 1)
 				{
+					board_[player*kCols + 9]++;
 					board_[space]--;
+					board_[space+1]++;
+				}else if(evade == 0){
+					board_[player*kCols + 9]+=2;
 				}else{
-					board_[space+1]--;
+					board_[space+evade]--;
+					board_[space+evade+1]++;
 				}
-				board_[player*kCols+9] = 0;
-				board_[player * kCols + 11]++;
 			}
+
+			if(board_[player*kCols+9] == 4)
+				{
+					if(evade == 0)
+					{
+						board_[space]--;
+					}else{
+						board_[space+1]--;
+					}
+					board_[player*kCols+9] = 0;
+					board_[player * kCols + 11]++;
+				}
 		}
+
 
 		void CounterAirState::DoApplyAction(Action move) {
 			if(initilazation == true){
@@ -180,17 +194,7 @@ namespace open_spiel {
 							board_[kCols + 3]++;
 							attacked = true;
 							turn++;
-							switch(move){
-								case 1:					
-									attacked_space = 1; //Escort
-									break;
-								case 2:
-									attacked_space = 3; //High Strike
-									break;
-								case 3:
-									attacked_space = 7; //Low Strike
-									break;
-							}							
+							attacked_space = move;		
 						}else{
 								TakenHit(1,kCols+2, move);
 								attacked = false;
@@ -215,17 +219,70 @@ namespace open_spiel {
 					red_finished_shooting = true;
 					blue_finished_shooting = true;
 				}
-			}
-			count++;
+			}else if(phase == 3){
+				switch(CurrentPlayer()) {
+					case 0:
+						//Blue attacks with Armed escorts, can only attack intercepts
+						if (attacked == false){	
+							board_[5]--;
+							board_[6]++;
+							attacked = true;
+							turn++;
+							attacked_space = move;	
+						}else{
+							//Blue gets attacked
+							TakenHit(0, attacked_space, move);
+							attacked = false;
+						}
+						break;
 
-			if (HasLine(current_player_)) {   //Om current player har vunnit
-				outcome_ = current_player_;
+					case 1:
+						if(attacked == false) {
+							if(move == 3){
+								board_[kCols + 4]--;
+								board_[kCols + 5]++;
+							}else{
+								attacked_low_strike++;
+								board_[kCols]--;
+								board_[kCols + 1]++;
+							}
+							attacked = true;
+							turn++;
+							attacked_space = move;				
+						}else{
+								TakenHit(1,attacked_space, move);
+								attacked = false;
+						}
+						break;
+
+				}
+				
+				//If red doesn't have any armed fighters in intercept, neither player can shoot
+				if(board_[kCols] == 0 && board_[kCols+4] == 0)
+				{
+					red_finished_shooting = true;
+					blue_finished_shooting = true;
+				}
+				//If blue doesn't have any armed escorts, blue can no longer shoot
+				if(board_[5] == 0)
+				{
+					blue_finished_shooting = true;
+				}
+				//If there are no armed: escorts, high strikes or low strikes. Neither player can shoot
+				if((board_[kCols] == 0 || board_[7] == 0) && (board_[kCols+4] == 0 || board_[3]==0)){
+					red_finished_shooting = true;
+				}
 			}
+
+			count++;
+//SENASTE ÄNDRINGEN
+			//HasLine(CurrentPlayer());
+			cout
 		}
 
 		//Ändrat 0
-		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen �r counterAirState och metod �r LegalActions
-			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa �ver
+		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen är counterAirState och metod är LegalActions
+			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa över
 			// Can move in any empty cell.
 			std::vector<Action> moves;    //Skapar en vector med alla legal moves
 			if(phase == 0)
@@ -267,9 +324,9 @@ namespace open_spiel {
 								moves.push_back(1);
 							}
 						}else{
-						if(board_[1] != 0) {
-							if(board_[kCols + 2] != 0) {
-								moves.push_back(1);
+						if(board_[1] > 0) {
+							if(board_[kCols + 2] > 0) {
+								moves.push_back(kCols+2);
 							}else{
 								red_finished_shooting = true;
 							}
@@ -286,35 +343,88 @@ namespace open_spiel {
 								moves.push_back(1);
 							}
 						}else{
-							if(board_[1] != 0) {
-								moves.push_back(1);
-							}else{
-								blue_finished_shooting = true;
-							}
-							if(board_[3] != 0) {
-								moves.push_back(2);
-							}
-							if(board_[7] != 0) {
-								moves.push_back(3);
-							}
-							if(std::size(moves) == 0){
-								red_finished_shooting = true; blue_finished_shooting = true;
+							if(board_[kCols+2] > 0) {
+								if(board_[1] > 0) {
+									moves.push_back(1);
+								}else{
+									blue_finished_shooting = true;
+								}
+								if(board_[3] > 0) {
+									moves.push_back(3);
+								}
+								if(board_[7] > 0) {
+									moves.push_back(7);
+								}
 							}
 						}
 						break;
 				}
-			}
+			}else if(phase == 3){
+				//Red can attack if(A High strike>0 || A Low strike>0) and can only attack each low strike once (does not make them evading)
+				//Each fighter may be targeted only once in this phase even if still armed
+				//Blue can attack if(A Active SAM>0 || A AAA>0)
+				switch(CurrentPlayer())
+				{
+					case 0:
+							if(attacked == true){
+								if(board_[9] == 3)
+								{
+									moves.push_back(1);
+								}else{
+									if(attacked_space == 7)
+									{
+										moves.push_back(1);
+									}else{
+										moves.push_back(0);
+										moves.push_back(1);
+										if(board_[5] > 0)
+										{
+											moves.push_back(2);
+										}
+									}
+								}
+							}else{
+							if(board_[5] > 0) {
+								if(board_[kCols] > 0) {
+									moves.push_back(kCols);
+								}
+								if(board_[kCols+4] > 0){
+									moves.push_back(kCols+4);
+								}
+							}
+							}
+						break;
+					case 1:
+							if(attacked == true){
+								if(board_[kCols+9] == 3)
+								{
+									moves.push_back(1);
+								}else{
+									moves.push_back(0);
+									moves.push_back(1);
+								}
+							}else{
 
+								if(board_[3] > 0 && board_[kCols+4] > 0) {
+									moves.push_back(3);
+								}
+								if(board_[7] > 0 && attacked_low_strike < board_[7] && board_[kCols] > 0) {
+									moves.push_back(7);
+								}
+							}
+							break;
+					}
+			}
 
 			return moves;
 		}
 
 		std::string CounterAirState::ActionToString(Player player,
 			Action action_id) const {
-			return game_->ActionToString(player, action_id);                      //Game_ �r game som skapade v�rt state
+			return game_->ActionToString(player, action_id);                      //Game_ är game som skapade vårt state
 		}
 
-		//Returnerar dem olika s�tten att vinna
+		//Returnerar dem olika sätten att vinna
 		bool CounterAirState::HasLine(Player player) const {
 			return BoardHasLine(board_, player);
 		}
@@ -328,6 +438,7 @@ namespace open_spiel {
 		//vi kan lägga till namn på de olika platserna
 		std::string CounterAirState::ToString() const {
 			std::string str;
+			absl::StrAppend(&str, "phase: " + std::to_string(phase) + "\n");
 			for (int r = 0; r < kRows; ++r) {
 				for (int c = 0; c < kCols; ++c) {
 					if(c == 0){
@@ -343,6 +454,7 @@ namespace open_spiel {
 					absl::StrAppend(&str, "\n");
 				}
 			}
+			absl::StrAppend(&str, "\n");
 			return str;
 		}
 
@@ -411,4 +523,3 @@ namespace open_spiel {
 
 	}  // namespace counter_air
 }  // namespace open_spiel
-
