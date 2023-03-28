@@ -48,7 +48,7 @@ namespace open_spiel {
 		bool BoardHasLine(const std::array<int, kNumCells>& board,
 			const Player player) {
 			
-			if(blue_finished_shooting == true && red_finished_shooting == true && attacked == false && phase == 3){
+			if(phase == 4){
 				return true;
 			}/*
 			if(phase == 2){
@@ -90,10 +90,11 @@ namespace open_spiel {
 					turn = 0;
 					blue_finished_shooting = false;
 					red_finished_shooting = false;
+					new_phase = true;
 					return Player{0};
 				}
 
-				if(turn%2 == 0) {
+				if(turn%2 == 0) { 
 					if(blue_finished_shooting == true && red_finished_shooting == false && attacked != true){
 						return Player{1};
 					}
@@ -131,7 +132,10 @@ namespace open_spiel {
 
 			if(board_[player*kCols+9] == 4)
 				{
-					if(evade == 0)
+					if(phase == 3 && space == 7){
+						board_[space]--;
+						attacked_low_strike--;
+					}else if(evade == 0)
 					{
 						board_[space]--;
 					}else{
@@ -152,9 +156,12 @@ namespace open_spiel {
 					initilazation = false;
 				}
 			}
-			//First phase of the game (put your pieces on the board)
-			if(phase == 0) {
-				switch(CurrentPlayer()) {
+			current_player_ = CurrentPlayer();
+
+			if(move != 100){
+			
+			if(phase == 0) { //First phase of the game (put your pieces on the board)
+				switch(current_player_) {
 					case 0:
 							board_[turn] = move;
 								blue_pieces = blue_pieces - move;
@@ -172,7 +179,7 @@ namespace open_spiel {
 			}
 			//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
 			else if (phase == 2){
-				switch(CurrentPlayer()) {
+				switch(current_player_) {
 					case 0:
 						//Blue attacks with Armed escorts, can only attack intercepts
 						if (attacked == false){
@@ -185,6 +192,12 @@ namespace open_spiel {
 							//Blue gets attacked
 							TakenHit(0, attacked_space, move);
 							attacked = false;
+							if(board_[1] == 0){
+								blue_finished_shooting = true;
+							}
+							if(blue_finished_shooting == true){
+								turn++;
+							}
 						}
 						break;
 
@@ -198,6 +211,12 @@ namespace open_spiel {
 						}else{
 								TakenHit(1,kCols+2, move);
 								attacked = false;
+								if(board_[kCols+2] == 0){
+								blue_finished_shooting = true;
+								}
+								if(red_finished_shooting == true){
+								turn++;
+								}
 						}
 						break;
 
@@ -220,7 +239,7 @@ namespace open_spiel {
 					blue_finished_shooting = true;
 				}
 			}else if(phase == 3){
-				switch(CurrentPlayer()) {
+				switch(current_player_) {
 					case 0:
 						//Blue attacks with Armed escorts, can only attack intercepts
 						if (attacked == false){	
@@ -233,6 +252,12 @@ namespace open_spiel {
 							//Blue gets attacked
 							TakenHit(0, attacked_space, move);
 							attacked = false;
+							if(board_[5] == 0){
+								blue_finished_shooting = true;
+							}
+							if(blue_finished_shooting == true){
+								turn++;
+							}
 						}
 						break;
 
@@ -252,6 +277,12 @@ namespace open_spiel {
 						}else{
 								TakenHit(1,attacked_space, move);
 								attacked = false;
+								if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){ //special fall
+								red_finished_shooting = true;
+								}
+								if(red_finished_shooting == true){
+								turn++;
+								}
 						}
 						break;
 
@@ -269,15 +300,17 @@ namespace open_spiel {
 					blue_finished_shooting = true;
 				}
 				//If there are no armed: escorts, high strikes or low strikes. Neither player can shoot
-				if((board_[kCols] == 0 || board_[7] == 0) && (board_[kCols+4] == 0 || board_[3]==0)){
+				if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){
 					red_finished_shooting = true;
 				}
 			}
 
 			count++;
-//SENASTE ÄNDRINGEN
-			//HasLine(CurrentPlayer());
-			cout
+			}
+			if(HasLine(CurrentPlayer())){
+				outcome_ = current_player_;
+			}
+			
 		}
 
 		//Ändrat 0
@@ -312,6 +345,16 @@ namespace open_spiel {
 				}
 			}
 			else if (phase == 2){
+				if (new_phase == true){
+				if(board_[1] < 1){
+					blue_finished_shooting = true;
+				}
+				if(board_[3] < 1 && board_[4] < 1)
+				{
+					red_finished_shooting = true;
+				}
+				new_phase = false;
+				}
 				switch(CurrentPlayer())
 				{
 				case 0:
@@ -363,6 +406,22 @@ namespace open_spiel {
 				//Red can attack if(A High strike>0 || A Low strike>0) and can only attack each low strike once (does not make them evading)
 				//Each fighter may be targeted only once in this phase even if still armed
 				//Blue can attack if(A Active SAM>0 || A AAA>0)
+				//if blue doesn't have any SEADs, blue can't shoot in this phase
+				if(new_phase == true){
+				if (board_[5] < 1){
+					blue_finished_shooting = true;
+				}
+				if ((board_[kCols] < 1 || board_[7] == attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){
+					red_finished_shooting = true;
+				}
+
+				if (blue_finished_shooting == true && red_finished_shooting == true){
+					moves.push_back(100);
+					return moves;
+				}
+				new_phase = false;
+				}
+
 				switch(CurrentPlayer())
 				{
 					case 0:
@@ -438,7 +497,10 @@ namespace open_spiel {
 		//vi kan lägga till namn på de olika platserna
 		std::string CounterAirState::ToString() const {
 			std::string str;
+			absl::StrAppend(&str, "turn: " + std::to_string(turn) + "\n");
 			absl::StrAppend(&str, "phase: " + std::to_string(phase) + "\n");
+			absl::StrAppend(&str, "BFS: " + std::to_string(blue_finished_shooting) + "\n");
+			absl::StrAppend(&str, "RFS: " + std::to_string(red_finished_shooting) + "\n");
 			for (int r = 0; r < kRows; ++r) {
 				for (int c = 0; c < kCols; ++c) {
 					if(c == 0){
