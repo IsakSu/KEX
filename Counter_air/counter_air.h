@@ -38,6 +38,8 @@ namespace open_spiel {
         inline constexpr int kCols = 12;  //ÄNDRAT
         inline constexpr int kNumCells = kRows * kCols;
         inline constexpr int kCellStates = 1 + kNumPlayers;  // empty, 'x', and 'o'. ändra sen
+        
+        bool new_phase = true;
 
         //phase 0
         int num_moves_ = 0;
