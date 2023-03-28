@@ -212,7 +212,7 @@ namespace open_spiel {
 								TakenHit(1,kCols+2, move);
 								attacked = false;
 								if(board_[kCols+2] == 0){
-								blue_finished_shooting = true;
+								red_finished_shooting = true;
 								}
 								if(red_finished_shooting == true){
 								turn++;
@@ -348,8 +348,10 @@ namespace open_spiel {
 				if (new_phase == true){
 				if(board_[1] < 1){
 					blue_finished_shooting = true;
+					current_player_=1;
+					turn++;
 				}
-				if(board_[3] < 1 && board_[4] < 1)
+				if(board_[3] < 1 && board_[7] < 1 && board[1] < 1)
 				{
 					red_finished_shooting = true;
 				}
@@ -410,6 +412,8 @@ namespace open_spiel {
 				if(new_phase == true){
 				if (board_[5] < 1){
 					blue_finished_shooting = true;
+					current_player_=1;
+					turn++;
 				}
 				if ((board_[kCols] < 1 || board_[7] == attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){
 					red_finished_shooting = true;
@@ -477,6 +481,8 @@ namespace open_spiel {
 
 			return moves;
 		}
+
+		
 
 		std::string CounterAirState::ActionToString(Player player,
 			Action action_id) const {
