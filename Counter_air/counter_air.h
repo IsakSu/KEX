@@ -64,14 +64,10 @@ namespace open_spiel {
         bool attacked = false;
 
         std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
-        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Airbase", "Hits", "Mainenance", "Graveyard"};
+        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "A Airbase", "Hits", "Maintenance", "Graveyard", "E Airbase"};
 
         //Board representation:
-        //Row 1: wave, escort, high strike, sead, low strike, hits, maintenance, graveyard #ex: w2 {1, 0, 1, 1} {1,0} {1,0,1} 2 0 {"aaa", "bFighter", "rFighter"}
-        //Row 2: aaa, intercept, active sam, passive sam, airbase, hits, maintenance, graveyard
-
-        // https://math.stackexchange.com/questions/485752/tictactoe-state-space-choose-calculation/485852
-        inline constexpr int kNumberStates = 5478;
+        //{3,0,2,5...}
 
         // State of an in-play game.
         class CounterAirState : public State {
