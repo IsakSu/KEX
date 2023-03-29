@@ -70,10 +70,12 @@ namespace open_spiel {
 					if(was_blue == true){
 						turn = -1;
 					}
-					if(red_sams != 0)
-					{
+					if(red_sams != 0){
 						was_blue = false;
 						return Player {1};
+					}
+					if(red_fighters != 0){
+						return Player {1}
 					}
 					else
 					{
@@ -114,7 +116,7 @@ namespace open_spiel {
 			if (space == kCols){
 				board_[space]--;
 				board_[space+1]++;
-			}else if(phase == 3 && space == 7){
+			}else if(phase == 3 && space == 7 || evade == 3){
 				board_[player*kCols + 9]++;
 			}else{
 				if(evade == 1)
@@ -125,7 +127,11 @@ namespace open_spiel {
 				}else if(evade == 0){
 					board_[player*kCols + 9]+=2;
 				}else{
-					board_[space+evade]--;
+					if(evade == 2){
+						board_[space+evade]--;
+					}else{
+						board_[space]--;
+					}
 					board_[space+evade+1]++;
 				}
 			}
@@ -151,7 +157,7 @@ namespace open_spiel {
 			if(initilazation == true){
 				board_[0] = 1;
 				board_[12] = 4;
-				board_[14] = 4;
+				//board_[14] = 4;
 				if(count == 3){
 					initilazation = false;
 				}
@@ -164,15 +170,16 @@ namespace open_spiel {
 				switch(current_player_) {
 					case 0:
 							board_[turn] = move;
-								blue_pieces = blue_pieces - move;
+							blue_pieces = blue_pieces - move;
 
 						break;
 					case 1:
-							//move = move + std::stoi(StateToString(BoardAt(kCols + 3 + turn)));
-							board_[kCols + 3 + turn] = move;
+							if (turn > kCols+2){
+								board_[kCols + 3 + turn] = move;
 								red_sams = red_sams - move;
-
+							}
 							
+
 						break;
 				}
 				
@@ -348,10 +355,10 @@ namespace open_spiel {
 				if (new_phase == true){
 				if(board_[1] < 1){
 					blue_finished_shooting = true;
-					current_player_=1;
+					//current_player_=1;
 					turn++;
 				}
-				if(board_[3] < 1 && board_[7] < 1 && board[1] < 1)
+				if(board_[3] < 1 && board_[7] < 1 && board_[1] < 1)
 				{
 					red_finished_shooting = true;
 				}
@@ -404,7 +411,7 @@ namespace open_spiel {
 						}
 						break;
 				}
-			}else if(phase == 3){
+			}else if(phase == 3){ 
 				//Red can attack if(A High strike>0 || A Low strike>0) and can only attack each low strike once (does not make them evading)
 				//Each fighter may be targeted only once in this phase even if still armed
 				//Blue can attack if(A Active SAM>0 || A AAA>0)
@@ -412,7 +419,7 @@ namespace open_spiel {
 				if(new_phase == true){
 				if (board_[5] < 1){
 					blue_finished_shooting = true;
-					current_player_=1;
+					//current_player_=1;
 					turn++;
 				}
 				if ((board_[kCols] < 1 || board_[7] == attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){
@@ -477,6 +484,76 @@ namespace open_spiel {
 							}
 							break;
 					}
+			}else if(phase == 4){
+				//High strike attacks airbase and or any SAM box. Inflicts one hit
+				//UAV inflicts 1 hit on any SAM box on wave 1 & 3
+				//Low strike attacks any SAM or intercepts or airbase. Inflicts one hit on SAM
+				//Low strike turns armed intercepts to evading in airbase and armed fighters in airbase to evading.
+				if(new_phase == true){
+				if ((board_[3] < 1 && board_[7] < 1) || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)){
+					blue_finished_shooting = true;
+				}
+				//kolla den sen
+				if((board_[3] > 0 && board_[kCols+2] > 0) && (board_[7] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)){
+					blue_finished_shooting = true;
+				}
+				
+				//kolla hur vi ska göra ifall bara low får skjuta i början, måste ändra dem över
+
+
+				if (blue_finished_shooting == true){moves.push_back(1);
+				}
+				new_phase = false;
+				}
+
+				switch(CurrentPlayer())
+				{
+					case 0:
+						if(turn == 0)
+						{
+							if(board_[3] > 0) {
+								if(board_[kCols+4] > 0) {
+									moves.push_back(kCols+4);
+								}
+								if(board_[kCols+6] > 0){
+									moves.push_back(kCols+6);
+								}
+								if(board_[kCols+8] > 0){
+									moves.push_back(kCols+8);
+								}
+							}else if(turn == 2){
+								if(board_[7] > 0) {
+									if(board_[kCols+2] > 0) {
+									moves.push_back(kCols+2);
+									}
+									if(board_[kCols+4] > 0){
+										moves.push_back(kCols+4);
+									}
+									if(board_[kCols+6] > 0){
+										moves.push_back(kCols+6);
+									}
+									if(board_[kCols+8] > 0){
+										moves.push_back(kCols+8);
+									}
+								}
+						}
+
+						}
+						}
+						break;
+					case 1:
+						if(attacked == true){
+								if(attacked_space == (kCols+4) || attacked_space == (kCols+6))
+								{
+									moves.push_back(3);
+								}else if(attacked_space == (kCols+8)){
+									moves.push_back(1); //kanske ändra eller ändra airbase
+								}else if(attacked_space == (kCols+2)){
+									moves.push_back(6);
+								}
+							}
+						}
+						break;
 			}
 
 			return moves;
