@@ -36,8 +36,8 @@ namespace open_spiel {
         inline constexpr int kNumPlayers = 2;
         inline constexpr int kRows = 2;  //ÄNDRAT
         inline constexpr int kCols = 12;  //ÄNDRAT
-        inline constexpr int kNumCells = kRows * kCols;
-        inline constexpr int kCellStates = 1 + kNumPlayers;  // empty, 'x', and 'o'. ändra sen
+        inline constexpr int kNumCells = kRows * kCols + 1;
+        inline constexpr int kCellStates = 11;  // empty, 'x', and 'o'. ändra sen
         
         bool new_phase = true;
 
@@ -64,7 +64,7 @@ namespace open_spiel {
         bool attacked = false;
 
         std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
-        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "A Airbase", "Hits", "Maintenance", "Graveyard", "E Airbase"};
+        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard"};
 
         //Board representation:
         //{3,0,2,5...}
