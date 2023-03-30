@@ -68,14 +68,11 @@ namespace open_spiel {
 				else
 				{
 					if(was_blue == true){
-						turn = -1;
+						turn = 0;
 					}
-					if(red_sams != 0){
+					if(red_fighters != 0 || red_sams != 0){
 						was_blue = false;
 						return Player {1};
-					}
-					if(red_fighters != 0){
-						return Player {1}
 					}
 					else
 					{
@@ -117,15 +114,15 @@ namespace open_spiel {
 				board_[space]--;
 				board_[space+1]++;
 			}else if(phase == 3 && space == 7 || evade == 3){
-				board_[player*kCols + 9]++;
+				board_[player*kCols + 9 + player]++;
 			}else{
 				if(evade == 1)
 				{
-					board_[player*kCols + 9]++;
+					board_[player*kCols + 9 + player]++;
 					board_[space]--;
 					board_[space+1]++;
 				}else if(evade == 0){
-					board_[player*kCols + 9]+=2;
+					board_[player*kCols + 9 + player]+=2;
 				}else{
 					if(evade == 2){
 						board_[space+evade]--;
@@ -136,7 +133,7 @@ namespace open_spiel {
 				}
 			}
 
-			if(board_[player*kCols+9] == 4)
+			if(board_[player*kCols+ 9 + player] == 4)
 				{
 					if(phase == 3 && space == 7){
 						board_[space]--;
@@ -147,8 +144,8 @@ namespace open_spiel {
 					}else{
 						board_[space+1]--;
 					}
-					board_[player*kCols+9] = 0;
-					board_[player * kCols + 11]++;
+					board_[player*kCols+9+player] = 0;
+					board_[player * kCols + 12]++;
 				}
 		}
 
@@ -174,10 +171,13 @@ namespace open_spiel {
 
 						break;
 					case 1:
-							if (turn > kCols+2){
-								board_[kCols + 3 + turn] = move;
-								red_sams = red_sams - move;
-							}
+								board_[kCols + turn] = move;
+								if(turn > 4)
+								{
+									red_sams = red_sams - move;
+								}else{
+									red_fighters = red_fighters - move;
+								}
 							
 
 						break;
@@ -271,8 +271,8 @@ namespace open_spiel {
 					case 1:
 						if(attacked == false) {
 							if(move == 3){
-								board_[kCols + 4]--;
-								board_[kCols + 5]++;
+								board_[kCols + 6]--;
+								board_[kCols + 7]++;
 							}else{
 								attacked_low_strike++;
 								board_[kCols]--;
@@ -284,7 +284,7 @@ namespace open_spiel {
 						}else{
 								TakenHit(1,attacked_space, move);
 								attacked = false;
-								if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){ //special fall
+								if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){ //special fall
 								red_finished_shooting = true;
 								}
 								if(red_finished_shooting == true){
@@ -296,7 +296,7 @@ namespace open_spiel {
 				}
 				
 				//If red doesn't have any armed fighters in intercept, neither player can shoot
-				if(board_[kCols] == 0 && board_[kCols+4] == 0)
+				if(board_[kCols] == 0 && board_[kCols+6] == 0)
 				{
 					red_finished_shooting = true;
 					blue_finished_shooting = true;
@@ -307,7 +307,7 @@ namespace open_spiel {
 					blue_finished_shooting = true;
 				}
 				//If there are no armed: escorts, high strikes or low strikes. Neither player can shoot
-				if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){
+				if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){
 					red_finished_shooting = true;
 				}
 			}
@@ -341,12 +341,22 @@ namespace open_spiel {
 					break;
 				case 1:
 					turn = turn + 2;
-					if(turn == 3){
+					if(turn == 8){
 						moves.push_back(red_sams);
+					}else if(turn == 4){
+							moves.push_back(red_fighters);
 					}else{
-						for(int amount = 0; amount <= red_sams; amount++) {
+						if(turn > 4)
+						{
+							for(int amount = 0; amount <= red_sams; amount++) {
 							moves.push_back(amount);
+							}
+						}else{
+							for(int amount = 0; amount <= red_fighters; amount++) {
+							moves.push_back(amount);
+							}
 						}
+						
 					}
 					break;
 				}
@@ -362,6 +372,11 @@ namespace open_spiel {
 				{
 					red_finished_shooting = true;
 				}
+
+				if(board_[kCols+2] == 0){
+					red_finished_shooting = true;
+					blue_finished_shooting = true;
+				}
 				new_phase = false;
 				}
 				switch(CurrentPlayer())
@@ -374,6 +389,7 @@ namespace open_spiel {
 							}else{
 								moves.push_back(0);
 								moves.push_back(1);
+								//moves.push_back(2); //Escort evadear åt hs/ls
 							}
 						}else{
 						if(board_[1] > 0) {
@@ -387,7 +403,7 @@ namespace open_spiel {
 					break;
 				case 1:
 						if(attacked == true){
-							if(board_[kCols+9] == 3)
+							if(board_[kCols+10] == 3)
 							{
 								moves.push_back(1);
 							}else{
@@ -422,7 +438,7 @@ namespace open_spiel {
 					//current_player_=1;
 					turn++;
 				}
-				if ((board_[kCols] < 1 || board_[7] == attacked_low_strike) && (board_[kCols+4] < 1 || board_[3] < 1)){
+				if ((board_[kCols] < 1 || board_[7] == attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){
 					red_finished_shooting = true;
 				}
 
@@ -458,15 +474,15 @@ namespace open_spiel {
 								if(board_[kCols] > 0) {
 									moves.push_back(kCols);
 								}
-								if(board_[kCols+4] > 0){
-									moves.push_back(kCols+4);
+								if(board_[kCols+6] > 0){
+									moves.push_back(kCols+6);
 								}
 							}
 							}
 						break;
 					case 1:
 							if(attacked == true){
-								if(board_[kCols+9] == 3)
+								if(board_[kCols+10] == 3)
 								{
 									moves.push_back(1);
 								}else{
@@ -475,7 +491,7 @@ namespace open_spiel {
 								}
 							}else{
 
-								if(board_[3] > 0 && board_[kCols+4] > 0) {
+								if(board_[3] > 0 && board_[kCols+6] > 0) {
 									moves.push_back(3);
 								}
 								if(board_[7] > 0 && attacked_low_strike < board_[7] && board_[kCols] > 0) {
@@ -521,25 +537,24 @@ namespace open_spiel {
 								if(board_[kCols+8] > 0){
 									moves.push_back(kCols+8);
 								}
-							}else if(turn == 2){
-								if(board_[7] > 0) {
-									if(board_[kCols+2] > 0) {
-									moves.push_back(kCols+2);
-									}
-									if(board_[kCols+4] > 0){
-										moves.push_back(kCols+4);
-									}
-									if(board_[kCols+6] > 0){
-										moves.push_back(kCols+6);
-									}
-									if(board_[kCols+8] > 0){
-										moves.push_back(kCols+8);
-									}
+							}
+						}else if(turn == 2){
+							if(board_[7] > 0) {
+								if(board_[kCols+2] > 0) {
+								moves.push_back(kCols+2);
 								}
+								if(board_[kCols+4] > 0){
+									moves.push_back(kCols+4);
+								}
+								if(board_[kCols+6] > 0){
+									moves.push_back(kCols+6);
+								}
+								if(board_[kCols+8] > 0){
+									moves.push_back(kCols+8);
+								}
+							}
 						}
 
-						}
-						}
 						break;
 					case 1:
 						if(attacked == true){
@@ -552,8 +567,8 @@ namespace open_spiel {
 									moves.push_back(6);
 								}
 							}
-						}
 						break;
+				}
 			}
 
 			return moves;
@@ -595,6 +610,7 @@ namespace open_spiel {
 					}
 					absl::StrAppend(&str, cell_names[r*kCols + c] + ": " + std::to_string(board_[r*kCols+c]) + " |");
 				}
+				absl::StrAppend(&str, cell_names[r*kCols + 12] + ": " + std::to_string(board_[r*kCols+12]) + " |");
 				if (r < (kRows - 1)) {
 					absl::StrAppend(&str, "\n");
 				}
