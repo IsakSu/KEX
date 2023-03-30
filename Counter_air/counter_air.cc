@@ -124,14 +124,37 @@ namespace open_spiel {
 				}else if(evade == 0){
 					board_[player*kCols + 9 + player]+=2;
 				}else{
-					if(evade == 2){
-						board_[space+evade]--;
-					}else{
-						board_[space]--;
+					if (phase == 2 && evade == 2){
+						board_[1]--;
+						board_[2]++;
 					}
-					board_[space+evade+1]++;
+					if(evade == 2 && phase == 3){
+						board_[5]--;
+						board_[6]++;
+					}
+					board_[player*kCols + 9 + player]++;
 				}
 			}
+
+			if(board_[player*kCols+ 9 + player] == 4)
+				{
+					if(phase == 3 && space == 7){
+						board_[space]--;
+						attacked_low_strike--;
+					}else if(evade == 0)
+					{
+						board_[space]--;
+					}else if(evade == 2 && phase == 2)
+					{
+						board_[2]--;
+					}else if(evade == 2 && phase == 3){
+						board_[6]--;
+					}else{
+						board_[space+1]--;
+					}
+					board_[player*kCols+9+player] = 0;
+					board_[player * kCols + 11 + player]++;
+				}
 
 			if(board_[player*kCols+ 9 + player] == 4)
 				{
@@ -145,7 +168,7 @@ namespace open_spiel {
 						board_[space+1]--;
 					}
 					board_[player*kCols+9+player] = 0;
-					board_[player * kCols + 12]++;
+					board_[player * kCols + 11 + player]++;
 				}
 		}
 
@@ -373,11 +396,16 @@ namespace open_spiel {
 					red_finished_shooting = true;
 				}
 
-				if(board_[kCols+2] == 0){
+				if(board_[kCols+2] < 1){
 					red_finished_shooting = true;
 					blue_finished_shooting = true;
 				}
 				new_phase = false;
+
+				if (blue_finished_shooting == true && red_finished_shooting == true){
+					moves.push_back(100);
+					return moves;
+				}
 				}
 				switch(CurrentPlayer())
 				{
@@ -386,10 +414,15 @@ namespace open_spiel {
 							if(board_[9] == 3)
 							{
 								moves.push_back(1);
+								if (board_[1] > 0){
+									moves.push_back(2);//Escort evades for hs/ls while blue has 3 hits
+								}
 							}else{
 								moves.push_back(0);
 								moves.push_back(1);
-								//moves.push_back(2); //Escort evadear åt hs/ls
+								if (board_[1] > 0){
+									moves.push_back(2); //Escort evades for hs/ls
+								}
 							}
 						}else{
 						if(board_[1] > 0) {
@@ -610,11 +643,11 @@ namespace open_spiel {
 					}
 					absl::StrAppend(&str, cell_names[r*kCols + c] + ": " + std::to_string(board_[r*kCols+c]) + " |");
 				}
-				absl::StrAppend(&str, cell_names[r*kCols + 12] + ": " + std::to_string(board_[r*kCols+12]) + " |");
 				if (r < (kRows - 1)) {
 					absl::StrAppend(&str, "\n");
 				}
 			}
+			absl::StrAppend(&str, cell_names[1*kCols + 12] + ": " + std::to_string(board_[1*kCols+12]) + " |");
 			absl::StrAppend(&str, "\n");
 			return str;
 		}
