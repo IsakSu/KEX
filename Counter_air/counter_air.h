@@ -43,9 +43,9 @@ namespace open_spiel {
 
         //phase 0
         int num_moves_ = 0;
-        int blue_pieces = 10; //Hur många pieces blå har kvar att lägga
-        int red_fighters = 4; //Hur många fighters röd har kvar att lägga
-        int red_sams = 4;   //Hur många sams röd har kvar att lägga
+        int constexpr blue_pieces = 10; //Hur många pieces blå har kvar att lägga
+        int constexpr red_fighters = 4; //Hur många fighters röd har kvar att lägga
+        int constexpr red_sams = 4;   //Hur många sams röd har kvar att lägga
         int phase = 0;  //Vilken phase vi är på
         int turn = -1;   //Vems tur det är och för phase 0 vilken ruta man är på
         int count = 1;
@@ -62,6 +62,8 @@ namespace open_spiel {
         bool blue_finished_shooting = false;
         bool red_finished_shooting = false;
         bool attacked = false;
+
+        bool fin = false;
 
         std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
         "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard"};
@@ -96,7 +98,7 @@ namespace open_spiel {
             Player outcome() const { return outcome_; }
 
             // Only used by Ultimate Tic-Tac-Toe.
-            void SetCurrentPlayer(Player player){ current_player_ = player; }
+            //void SetCurrentPlayer(Player player){ current_player_ = player; } //Kan ta bort?
 
         protected:
             std::array<int, kNumCells> board_;
@@ -105,7 +107,7 @@ namespace open_spiel {
 
         private:
             bool HasLine(Player player) const;  // Does this player have a line? 
-            Player current_player_ = 0;         // Player zero goes first
+            Player current_player_ = 1;         // Player zero goes first
             Player outcome_ = kInvalidPlayer;
         };
 
@@ -122,9 +124,9 @@ namespace open_spiel {
    	    absl::optional<double> UtilitySum() const override { return 0; }
             double MaxUtility() const override { return 2; }
             std::vector<int> ObservationTensorShape() const override {
-                return { kCellStates, kRows, kCols };
+                return { kNumCells};
             }
-            int MaxGameLength() const override { return kNumCells; }
+            int MaxGameLength() const override { return 1000000; }
             std::string ActionToString(Player player, Action action_id) const override;
         };
 
@@ -140,3 +142,4 @@ namespace open_spiel {
 }  // namespace open_spiel
 
 #endif  // OPEN_SPIEL_GAMES_COUNTER_AIR_H_
+
