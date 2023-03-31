@@ -37,18 +37,11 @@ namespace open_spiel {
 
 		}
 
-
-		int CheckPoints(const std::array<int, kNumCells>& board,
-			int c, int cell, int Points, int direction = 0) {
-			int ActiveCol = cell % 7;
-			bool LastRow = false;
-		}
-
 		//SLUTET
 		bool BoardHasLine(const std::array<int, kNumCells>& board,
 			const Player player) {
 			
-			if(phase == 4){
+			if(phase == 1 && attacked == false){
 				return true;
 			}/*
 			if(phase == 2){
@@ -61,7 +54,7 @@ namespace open_spiel {
 		Player CounterAirState::CurrentPlayer() const {
 			if(phase == 0)
 			{
-				if(blue_pieces != 0)
+				if(blue_pieces > 11/*(board_[1] + board_[3] + board_[5] + board_[7])*/)
 				{
 					return Player{0};
 				}
@@ -70,7 +63,7 @@ namespace open_spiel {
 					if(was_blue == true){
 						turn = 0;
 					}
-					if(red_fighters != 0 || red_sams != 0){
+					if((red_sams+red_fighters) > (board_[kCols+2] + board_[kCols+4] + board_[kCols+6] + board_[kCols+8])){
 						was_blue = false;
 						return Player {1};
 					}
@@ -82,10 +75,14 @@ namespace open_spiel {
 					}
 				}
 			}
-			else if (phase == 2 || phase == 3) {
+			else if (phase == 2 || phase == 3 || phase == 4) {
 				if(blue_finished_shooting == true && red_finished_shooting == true && attacked != true)
 				{
-					phase++;
+					if(phase == 4){
+						phase = 1;
+					}else{
+						phase++;
+					}
 					turn = 0;
 					blue_finished_shooting = false;
 					red_finished_shooting = false;
@@ -174,38 +171,27 @@ namespace open_spiel {
 
 
 		void CounterAirState::DoApplyAction(Action move) {
-			if(initilazation == true){
-				board_[0] = 1;
-				board_[12] = 4;
-				//board_[14] = 4;
-				if(count == 3){
-					initilazation = false;
-				}
-			}
 			current_player_ = CurrentPlayer();
-
+			Player{current_player_};
 			if(move != 100){
 			
 			if(phase == 0) { //First phase of the game (put your pieces on the board)
 				switch(current_player_) {
 					case 0:
 							board_[turn] = move;
-							blue_pieces = blue_pieces - move;
-
+							if(turn == 7){
+							}
 						break;
 					case 1:
-								board_[kCols + turn] = move;
-								if(turn > 4)
-								{
-									red_sams = red_sams - move;
-								}else{
-									red_fighters = red_fighters - move;
-								}
-							
-
+						if(move > 4){
+							board_[kCols+6] = move%5;
+							board_[kCols+8] = red_sams - move%5;
+						}else{
+							board_[kCols+2] = move;
+							board_[kCols+4] = red_fighters - move;
+						}
 						break;
 				}
-				
 			}
 			//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
 			else if (phase == 2){
@@ -333,6 +319,40 @@ namespace open_spiel {
 				if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){
 					red_finished_shooting = true;
 				}
+			}else if(phase == 4){
+				switch(current_player_) {
+					case 0:
+						//Blue attacks with Armed escorts, can only attack intercepts
+						if (attacked == false){	
+							if(turn==0){
+								board_[3]--;
+								board_[4]++;
+							}else{
+								board_[7]--;
+								board_[8]++;
+							}
+							attacked = true;
+							turn++;
+							attacked_space = move;	
+						}
+						break;
+
+					case 1:
+							TakenHit(1,attacked_space, move);
+							attacked = false;
+							turn--;
+						break;
+
+				}
+
+				if((board_[3] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && turn == 0){
+					turn+=2;
+				}
+				
+				//If red doesn't have any armed fighters in intercept, neither player can shoot
+				if(turn==2 && (board_[7] < 1 || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1))){
+					blue_finished_shooting = true;
+				}
 			}
 
 			count++;
@@ -346,40 +366,32 @@ namespace open_spiel {
 		//Ändrat 0
 		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen är counterAirState och metod är LegalActions
 			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa över
-			// Can move in any empty cell.
 			std::vector<Action> moves;    //Skapar en vector med alla legal moves
+			//current_player_ = CurrentPlayer();
 			if(phase == 0)
 			{
-				switch(CurrentPlayer())
+				switch(current_player_)
 				{
 				case 0:
 					turn = turn + 2;
 					if(turn == 7){
-						moves.push_back(blue_pieces);
+						moves.push_back((blue_pieces - (board_[1] + board_[3] + board_[5] + board_[7])));
 					}else{
-						for(int amount = 0; amount <= blue_pieces; amount++) {
+						for(int amount = 0; amount <= (blue_pieces - (board_[1] + board_[3] + board_[5] + board_[7])); amount++) {
 							moves.push_back(amount);
 						}
 					}
 					break;
 				case 1:
-					turn = turn + 2;
-					if(turn == 8){
-						moves.push_back(red_sams);
-					}else if(turn == 4){
-							moves.push_back(red_fighters);
-					}else{
-						if(turn > 4)
-						{
-							for(int amount = 0; amount <= red_sams; amount++) {
+					if ((board_[kCols+2] + board_[kCols+4]) < red_fighters){
+						for (int amount = 0; amount <= (red_fighters-(board_[kCols+2]+board_[kCols+4])); amount++){
 							moves.push_back(amount);
-							}
-						}else{
-							for(int amount = 0; amount <= red_fighters; amount++) {
-							moves.push_back(amount);
-							}
 						}
-						
+					}
+					else{
+						for (int amount = 5; amount <= 5+(red_sams-(board_[kCols+6]+board_[kCols+8])); amount++){
+							moves.push_back(amount);
+						}
 					}
 					break;
 				}
@@ -420,7 +432,7 @@ namespace open_spiel {
 							}else{
 								moves.push_back(0);
 								moves.push_back(1);
-								if (board_[1] > 0){
+								if (board_[1] > 0 && attacked_space != 1){
 									moves.push_back(2); //Escort evades for hs/ls
 								}
 							}
@@ -539,11 +551,13 @@ namespace open_spiel {
 				//Low strike attacks any SAM or intercepts or airbase. Inflicts one hit on SAM
 				//Low strike turns armed intercepts to evading in airbase and armed fighters in airbase to evading.
 				if(new_phase == true){
-				if ((board_[3] < 1 && board_[7] < 1) || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)){
-					blue_finished_shooting = true;
+					red_finished_shooting = true;
+				if((board_[3] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && attacked == false){
+					turn+=2;
 				}
-				//kolla den sen
-				if((board_[3] > 0 && board_[kCols+2] > 0) && (board_[7] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)){
+				
+				//If red doesn't have any armed fighters in intercept, neither player can shoot
+				if(turn==2 && (board_[7] < 1 || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && attacked == false){
 					blue_finished_shooting = true;
 				}
 				
@@ -589,14 +603,18 @@ namespace open_spiel {
 						}
 
 						break;
-					case 1:
+					case 1: //måste fixa airbase inte tar hits utan bara sätter till evading från low strike
+					//Ändra också att vi håller koll på hur många ggr vi skjutit en pjäs även om den inte sätts till evading
 						if(attacked == true){
-								if(attacked_space == (kCols+4) || attacked_space == (kCols+6))
+								if(attacked_space == (kCols+8) || attacked_space == (kCols+6))
 								{
 									moves.push_back(3);
-								}else if(attacked_space == (kCols+8)){
+								}else if(attacked_space == (kCols+4) && turn == 3){ 
 									moves.push_back(1); //kanske ändra eller ändra airbase
-								}else if(attacked_space == (kCols+2)){
+								}else if(attacked_space == (kCols+4) && turn == 1)
+								{
+									moves.push_back(3);
+								}else if(attacked_space == (kCols+2) && turn == 3){
 									moves.push_back(6);
 								}
 							}
@@ -622,7 +640,14 @@ namespace open_spiel {
 		//konstruktor
 		CounterAirState::CounterAirState(std::shared_ptr<const Game> game) : State(game) {
 			std::fill(begin(board_), end(board_), 0);
-
+			board_[0] = 1;
+			board_[12] = 4;
+			board_[1] = 4;
+			board_[3] = 2;
+			board_[5] = 2;
+			board_[7] = 2;
+			//board_[kCols+2] = 4;
+			//board_[14] = 4;
 		}
  
 		//vi kan lägga till namn på de olika platserna
@@ -630,6 +655,7 @@ namespace open_spiel {
 			std::string str;
 			absl::StrAppend(&str, "turn: " + std::to_string(turn) + "\n");
 			absl::StrAppend(&str, "phase: " + std::to_string(phase) + "\n");
+			absl::StrAppend(&str, "BP: " + std::to_string(blue_pieces) + "\n");
 			absl::StrAppend(&str, "BFS: " + std::to_string(blue_finished_shooting) + "\n");
 			absl::StrAppend(&str, "RFS: " + std::to_string(red_finished_shooting) + "\n");
 			for (int r = 0; r < kRows; ++r) {
@@ -687,9 +713,9 @@ namespace open_spiel {
 			SPIEL_CHECK_LT(player, num_players_);
 
 			// Treat `values` as a 2-d tensor.
-			TensorView<2> view(values, { kCellStates, kNumCells }, true);
+			TensorView<1> view(values, { kNumCells }, true);
 			for (int cell = 0; cell < kNumCells; ++cell) {
-				view[{static_cast<int>(board_[cell]), cell}] = 1.0;
+				view[{static_cast<int>(board_[cell])}] = 1.0;
 			}
 		}
 
