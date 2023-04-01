@@ -35,8 +35,8 @@ namespace open_spiel {
         // Constants.
         inline constexpr int kNumPlayers = 2;
         inline constexpr int kRows = 2;  //ÄNDRAT
-        inline constexpr int kCols = 12;  //ÄNDRAT
-        inline constexpr int kNumCells = kRows * kCols + 1;
+        inline constexpr int kCols = 14/*12*/;  //ÄNDRAT
+        inline constexpr int kNumCells = kRows * kCols /*+ 1*/;
         inline constexpr int kCellStates = 11;  // empty, 'x', and 'o'. ändra sen
         
         bool new_phase = true;
@@ -47,7 +47,7 @@ namespace open_spiel {
         int constexpr red_fighters = 4; //Hur många fighters röd har kvar att lägga
         int constexpr red_sams = 4;   //Hur många sams röd har kvar att lägga
         int phase = 0;  //Vilken phase vi är på
-        int turn = -1;   //Vems tur det är och för phase 0 vilken ruta man är på
+        int turn = 0;   //Vems tur det är och för phase 0 vilken ruta man är på
         int count = 1;
 
         bool was_blue = true;
@@ -65,8 +65,8 @@ namespace open_spiel {
 
         bool fin = false;
 
-        std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
-        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard"};
+        std::array<std::string, kNumCells> cell_names = {"Wave", "Phase", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard", "turn",
+        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard", "turn"};
 
         //Board representation:
         //{3,0,2,5...}
@@ -107,7 +107,7 @@ namespace open_spiel {
 
         private:
             bool HasLine(Player player) const;  // Does this player have a line? 
-            Player current_player_ = 1;         // Player zero goes first
+            Player current_player_ = 0;         // Player zero goes first
             Player outcome_ = kInvalidPlayer;
         };
 
