@@ -41,7 +41,7 @@ namespace open_spiel {
 		bool BoardHasLine(const std::array<int, kNumCells>& board,
 			const Player player) {
 			
-			if(phase == 1 && attacked == false){
+			if(board[1] == 2){
 				return true;
 			}/*
 			if(phase == 2){
@@ -51,31 +51,25 @@ namespace open_spiel {
 			return false;
 		}
 
-		Player CounterAirState::CurrentPlayer() const {
-			if(phase == 0)
+		Player CounterAirState::CurrentPlayer() const{
+			if(board_[1] == 0)
 			{
-				if(blue_pieces > 11/*(board_[1] + board_[3] + board_[5] + board_[7])*/)
+				if(blue_pieces > (board_[2] + board_[4] + board_[6] + board_[8]))
 				{
-					return Player{0};
+					return IsTerminal() ? kTerminalPlayerId : Player{0};
 				}
 				else
 				{
-					if(was_blue == true){
-						turn = 0;
-					}
 					if((red_sams+red_fighters) > (board_[kCols+2] + board_[kCols+4] + board_[kCols+6] + board_[kCols+8])){
-						was_blue = false;
-						return Player {1};
+						return IsTerminal() ? kTerminalPlayerId : Player{1};
 					}
 					else
 					{
-						turn = 0;
-						phase = 2;
-						return Player{0};
+						return IsTerminal() ? kTerminalPlayerId : Player{0};
 					}
 				}
 			}
-			else if (phase == 2 || phase == 3 || phase == 4) {
+			/*else if (phase == 2 || phase == 3 || phase == 4) {
 				if(blue_finished_shooting == true && red_finished_shooting == true && attacked != true)
 				{
 					if(phase == 4){
@@ -103,7 +97,9 @@ namespace open_spiel {
 					return Player{1};
 			}
 
-			}
+			}*/
+			return IsTerminal() ? kTerminalPlayerId : Player{0};
+			
 		}
 
 		void CounterAirState::TakenHit(int player, int space, int evade){
@@ -172,20 +168,27 @@ namespace open_spiel {
 
 		void CounterAirState::DoApplyAction(Action move) {
 			current_player_ = CurrentPlayer();
-			Player{current_player_};
 			if(move != 100){
 			
-			if(phase == 0) { //First phase of the game (put your pieces on the board)
+			if(board_[1] == 0) { //First phase of the game (put your pieces on the board)
 				switch(current_player_) {
 					case 0:
-							board_[turn] = move;
-							if(turn == 7){
+							if(board_[13] > 6){
+								board_[13] = 0;	
+							}
+							board_[13]+=2;
+
+							turn = board_[13];
+							if(turn < 9)
+							{
+								board_[turn] = move;	
 							}
 						break;
 					case 1:
 						if(move > 4){
 							board_[kCols+6] = move%5;
 							board_[kCols+8] = red_sams - move%5;
+							board_[1] = 2;
 						}else{
 							board_[kCols+2] = move;
 							board_[kCols+4] = red_fighters - move;
@@ -193,7 +196,7 @@ namespace open_spiel {
 						break;
 				}
 			}
-			//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
+			/*//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
 			else if (phase == 2){
 				switch(current_player_) {
 					case 0:
@@ -354,7 +357,7 @@ namespace open_spiel {
 					blue_finished_shooting = true;
 				}
 			}
-
+*/
 			count++;
 			}
 			if(HasLine(CurrentPlayer())){
@@ -370,16 +373,16 @@ namespace open_spiel {
 			//current_player_ = CurrentPlayer();
 			if(phase == 0)
 			{
-				switch(current_player_)
+				switch(CurrentPlayer())
 				{
 				case 0:
-					turn = turn + 2;
-					if(turn == 7){
-						moves.push_back((blue_pieces - (board_[1] + board_[3] + board_[5] + board_[7])));
+					if(board_[13] == 6){
+						moves.push_back((blue_pieces - (board_[2] + board_[4] + board_[6] + board_[8])));
 					}else{
-						for(int amount = 0; amount <= (blue_pieces - (board_[1] + board_[3] + board_[5] + board_[7])); amount++) {
+						for(int amount = 0; amount <= (blue_pieces - (board_[2] + board_[4] + board_[6] + board_[8])); amount++) {
 							moves.push_back(amount);
 						}
+						//moves.push_back(10);
 					}
 					break;
 				case 1:
@@ -396,7 +399,7 @@ namespace open_spiel {
 					break;
 				}
 			}
-			else if (phase == 2){
+			/*else if (phase == 2){
 				if (new_phase == true){
 				if(board_[1] < 1){
 					blue_finished_shooting = true;
@@ -621,7 +624,7 @@ namespace open_spiel {
 						break;
 				}
 			}
-
+*/
 			return moves;
 		}
 
@@ -641,11 +644,11 @@ namespace open_spiel {
 		CounterAirState::CounterAirState(std::shared_ptr<const Game> game) : State(game) {
 			std::fill(begin(board_), end(board_), 0);
 			board_[0] = 1;
-			board_[12] = 4;
-			board_[1] = 4;
+			board_[14] = 4;
+			/*board_[1] = 10;
 			board_[3] = 2;
 			board_[5] = 2;
-			board_[7] = 2;
+			board_[7] = 2;*/
 			//board_[kCols+2] = 4;
 			//board_[14] = 4;
 		}
@@ -673,7 +676,7 @@ namespace open_spiel {
 					absl::StrAppend(&str, "\n");
 				}
 			}
-			absl::StrAppend(&str, cell_names[1*kCols + 12] + ": " + std::to_string(board_[1*kCols+12]) + " |");
+			//absl::StrAppend(&str, cell_names[1*kCols + 12] + ": " + std::to_string(board_[1*kCols+12]) + " |");
 			absl::StrAppend(&str, "\n");
 			return str;
 		}
