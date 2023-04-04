@@ -46,14 +46,11 @@ namespace open_spiel {
         bool was_blue = true;
 
         //phase 3
-        int attacked_low_strike = 0;
-
-        bool attacked = false;
 
         bool fin = false;
 
         std::array<std::string, kNumCells> cell_names = {"Wave", "Phase", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard", "turn", 
-        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard", "turn", "BFS", "RFS", "NP", "AS", "Attacked"};
+        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard", "turn", "BFS", "RFS", "NP", "AttackedSpace", "Attacked", "AttackedLowStrike"};
 
         //Board representation:
         //{3,0,2,5...}
