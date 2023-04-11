@@ -41,7 +41,7 @@ namespace open_spiel {
 		bool BoardHasLine(const std::array<int, kNumCells>& board,
 			const Player player) {
 			
-			if(phase == 2 && player == 0){
+			if(board[1] == 2 && board[0] == 2){
 				return true;
 			}/*
 			if(phase == 2){
@@ -51,256 +51,286 @@ namespace open_spiel {
 			return false;
 		}
 
-		Player CounterAirState::CurrentPlayer() const {
-			if(phase == 0)
+		Player CounterAirState::CurrentPlayer() const{
+			if(board_[1] == 0)
 			{
-				if(blue_pieces != 0)
+				if(blue_pieces > (board_[2] + board_[4] + board_[6] + board_[8]))
 				{
-					return Player{0};
+					return IsTerminal() ? kTerminalPlayerId : Player{0};
 				}
 				else
 				{
-					if(was_blue == true){
-						turn = 0;
-					}
-					if(red_fighters != 0 || red_sams != 0){
-						was_blue = false;
-						return Player {1};
+					if((red_sams+red_fighters) > (board_[kCols+2] + board_[kCols+4] + board_[kCols+6] + board_[kCols+8])){
+						return IsTerminal() ? kTerminalPlayerId : Player{1};
 					}
 					else
 					{
-						turn = 0;
-						phase = 2;
-						return Player{0};
+						return IsTerminal() ? kTerminalPlayerId : Player{0};
 					}
 				}
 			}
-			else if (phase == 2 || phase == 3 || phase == 4) {
-				if(blue_finished_shooting == true && red_finished_shooting == true && attacked != true)
-				{
-					if(phase == 4){
-						phase = 1;
-					}else{
-						phase++;
+			else if (board_[1] == 2 || board_[1] == 3 || board_[1] == 4) {
+				
+				if((board_[27])%2 == 0) { 
+					if(board_[28] == true && board_[29] == false && board_[32] != true){
+						return IsTerminal() ? kTerminalPlayerId : Player{1};
 					}
-					turn = 0;
-					blue_finished_shooting = false;
-					red_finished_shooting = false;
-					new_phase = true;
-					return Player{0};
-				}
-
-				if(turn%2 == 0) { 
-					if(blue_finished_shooting == true && red_finished_shooting == false && attacked != true){
-						return Player{1};
-					}
-					return Player{0};
+					return IsTerminal() ? kTerminalPlayerId : Player{0};
 				}else{
-					if(blue_finished_shooting == false && red_finished_shooting == true && attacked != true)
+					if(board_[28] == false && board_[29] == true && board_[32] != true)
 					{
-						return Player{0};
+						return IsTerminal() ? kTerminalPlayerId : Player{0};
 					}
-					return Player{1};
-			}
+					return IsTerminal() ? kTerminalPlayerId : Player{1};
+				}
 
+			}else if(board_[1] == 1){
+
+				if(board_[28] != true)
+				{
+					return IsTerminal() ? kTerminalPlayerId : Player{0};
+				}
+				else
+				{
+					if((red_sams+red_fighters) > (board_[kCols+2] + board_[kCols+4] + board_[kCols+6] + board_[kCols+8])){
+						return IsTerminal() ? kTerminalPlayerId : Player{1};
+					}
+					else
+					{
+						return IsTerminal() ? kTerminalPlayerId : Player{0};
+					}
+				}
 			}
+			return IsTerminal() ? kTerminalPlayerId : Player{0};
 		}
 
 		void CounterAirState::TakenHit(int player, int space, int evade){
 			if (space == kCols){
 				board_[space]--;
 				board_[space+1]++;
-			}else if(phase == 3 && space == 7 || evade == 3){
-				board_[player*kCols + 9 + player]++;
+			}else if(board_[1] == 3 && space == 8 || evade == 3){
+				board_[player*kCols + 10]++;
 			}else{
 				if(evade == 1)
 				{
-					board_[player*kCols + 9 + player]++;
+					board_[player*kCols + 10]++;
 					board_[space]--;
 					board_[space+1]++;
 				}else if(evade == 0){
-					board_[player*kCols + 9 + player]+=2;
+					board_[player*kCols + 10]+=2;
+				}else if(evade == 6 && board_[1] == 4)
+				{
+					board_[kCols+2]--;
+					board_[kCols+5]++;
 				}else{
-					if (phase == 2 && evade == 2){
-						board_[1]--;
-						board_[2]++;
+					if (board_[1] == 2 && evade == 5){
+						board_[2]--;
+						board_[3]++;
 					}
-					if(evade == 2 && phase == 3){
-						board_[5]--;
-						board_[6]++;
+					if(evade == 5 && board_[1] == 3){
+						board_[6]--;
+						board_[7]++;
 					}
-					board_[player*kCols + 9 + player]++;
+					board_[player*kCols + 10]++;
 				}
 			}
 
-			if(board_[player*kCols+ 9 + player] == 4)
+			if(board_[player*kCols+ 10] == 4)
 				{
-					if(phase == 3 && space == 7){
+					if(board_[1] == 3 && space == 8){
 						board_[space]--;
-						attacked_low_strike--;
+						board_[33]--;
 					}else if(evade == 0)
 					{
 						board_[space]--;
-					}else if(evade == 2 && phase == 2)
+					}else if(evade == 5 && board_[1] == 2)
 					{
 						board_[2]--;
-					}else if(evade == 2 && phase == 3){
+					}else if(evade == 5 && board_[1] == 3){
 						board_[6]--;
+					}else if(evade == 6 && board_[1] == 4){
+						board_[kCols+5]--;
+					}else if(evade == 3 && board_[1] == 4){
+						if(space == kCols+8){
+							board_[kCols+8]--;
+						}
 					}else{
 						board_[space+1]--;
 					}
-					board_[player*kCols+9+player] = 0;
-					board_[player * kCols + 11 + player]++;
-				}
-
-			if(board_[player*kCols+ 9 + player] == 4)
-				{
-					if(phase == 3 && space == 7){
-						board_[space]--;
-						attacked_low_strike--;
-					}else if(evade == 0)
-					{
-						board_[space]--;
-					}else{
-						board_[space+1]--;
-					}
-					board_[player*kCols+9+player] = 0;
-					board_[player * kCols + 11 + player]++;
+					board_[player*kCols+10] = 0;
+					board_[player * kCols + 12]++;
 				}
 		}
 
 
 		void CounterAirState::DoApplyAction(Action move) {
 			current_player_ = CurrentPlayer();
-
 			if(move != 100){
 			
-			if(phase == 0) { //First phase of the game (put your pieces on the board)
+			if(board_[1] == 0) { //First phase of the game (put your pieces on the board)
 				switch(current_player_) {
 					case 0:
-							board_[turn] = move;
-							blue_pieces = blue_pieces - move;
-
+							if(board_[27] > 6){
+								board_[27] = 0;	
+							}
+							board_[27]+=2;
+							if(board_[27] < 9)
+							{
+								board_[board_[27]] = move;	
+							}
 						break;
 					case 1:
-								board_[kCols + turn] = move;
-								if(turn > 4)
-								{
-									red_sams = red_sams - move;
-								}else{
-									red_fighters = red_fighters - move;
-								}
-							
-
+						if(move > 4){
+							board_[kCols+6] = move%5;
+							board_[kCols+8] = red_sams - move%5;
+							board_[1] = 2;
+						}else{
+							board_[kCols+2] = move;
+							board_[kCols+4] = red_fighters - move;
+						}
 						break;
 				}
-				
+			}
+			else if(board_[1] == 1)
+			{
+
+				switch(current_player_) {
+					case 0:
+							if(board_[27] > 6){
+								board_[27] = 0;	
+								//Nästa turn
+							}
+							board_[27]+=2;
+							if(board_[27] < 9)
+							{
+								board_[board_[27]] = move;
+								board_[13] = board_[13]-move;	
+							}
+
+							if(board_[27] == 8){
+								board_[28] = true;
+								board_[13] = board_[kCols+2] + board_[kCols+4];
+							}
+						break;
+					case 1:
+						if(move > 4){
+							board_[kCols+6] = move%5;
+							board_[kCols+8] = red_sams - move%5;
+							board_[13] = 0;
+							board_[29] = true;
+							board_[1] = 2;
+						}else{
+							board_[kCols+2] = move;
+							board_[kCols+4] = red_fighters - move;
+							board_[13] = 0;
+							board_[13] = board_[kCols+6] + board_[kCols+8];
+						}
+						break;
+				}
+
 			}
 			//second phase of game, escort attacks intercept, intercept attacks escort, high strike and low strike
-			else if (phase == 2){
+			else if (board_[1] == 2){
 				switch(current_player_) {
 					case 0:
 						//Blue attacks with Armed escorts, can only attack intercepts
-						if (attacked == false){
-							
-							board_[1]--;
-							board_[2]++;
-							attacked = true;
-							turn++;
+						if (board_[32] == false){
+							board_[2]--;
+							board_[3]++;
+							board_[32] = true;
+							board_[27]++;
 						}else{
-							//Blue gets attacked
-							TakenHit(0, attacked_space, move);
-							attacked = false;
-							if(board_[1] == 0){
-								blue_finished_shooting = true;
+							//Blue gets board_[32]
+							TakenHit(0, board_[31], move);
+							board_[32] = false;
+							if(board_[2] == 0){
+								board_[28] = true;
 							}
-							if(blue_finished_shooting == true){
-								turn++;
+							if(board_[28] == true){
+								board_[27]++;
 							}
 						}
 						break;
 
 					case 1:
-						if(attacked == false) {
+						if(board_[32] == false) {
 							board_[kCols + 2]--;
 							board_[kCols + 3]++;
-							attacked = true;
-							turn++;
-							attacked_space = move;		
+							board_[32] = true;
+							board_[27]++;
+							board_[31] = move;		
 						}else{
 								TakenHit(1,kCols+2, move);
-								attacked = false;
+								board_[32] = false;
 								if(board_[kCols+2] == 0){
-								red_finished_shooting = true;
+								board_[29] = true;
 								}
-								if(red_finished_shooting == true){
-								turn++;
+								if(board_[29] == true){
+								board_[27]++;
 								}
 						}
 						break;
-
 				}
-				
 				//If red doesn't have any armed fighters in intercept, neither player can shoot
 				if(board_[kCols+2] == 0)
 				{
-					red_finished_shooting = true;
-					blue_finished_shooting = true;
+					board_[29] = true;
+					board_[28] = true;
 				}
 				//If blue doesn't have any armed escorts, blue can no longer shoot
 				if(board_[1] == 0)
 				{
-					blue_finished_shooting = true;
+					board_[28] = true;
 				}
 				//If there are no armed: escorts, high strikes or low strikes. Neither player can shoot
-				if((board_[1] == 0) && (board_[3] == 0) && (board_[7] == 0)){
-					red_finished_shooting = true;
-					blue_finished_shooting = true;
+				if((board_[2] == 0) && (board_[4] == 0) && (board_[8] == 0)){
+					board_[29] = true;
+					board_[28] = true;
 				}
-			}else if(phase == 3){
+			}else if(board_[1] == 3){
 				switch(current_player_) {
 					case 0:
 						//Blue attacks with Armed escorts, can only attack intercepts
-						if (attacked == false){	
-							board_[5]--;
-							board_[6]++;
-							attacked = true;
-							turn++;
-							attacked_space = move;	
+						if (board_[32] == false){	
+							board_[6]--;
+							board_[7]++;
+							board_[32] = true;
+							board_[27]++;
+							board_[31] = move;	
 						}else{
-							//Blue gets attacked
-							TakenHit(0, attacked_space, move);
-							attacked = false;
-							if(board_[5] == 0){
-								blue_finished_shooting = true;
+							//Blue gets board_[32]
+							TakenHit(0, board_[31], move);
+							board_[32] = false;
+							if(board_[6] == 0){
+								board_[28] = true;
 							}
-							if(blue_finished_shooting == true){
-								turn++;
+							if(board_[28] == true){
+								board_[27]++;
 							}
 						}
 						break;
 
 					case 1:
-						if(attacked == false) {
-							if(move == 3){
+						if(board_[32] == false) {
+							if(move == 4){
 								board_[kCols + 6]--;
 								board_[kCols + 7]++;
 							}else{
-								attacked_low_strike++;
+								board_[33]++;
 								board_[kCols]--;
 								board_[kCols + 1]++;
 							}
-							attacked = true;
-							turn++;
-							attacked_space = move;				
+							board_[32] = true;
+							board_[27]++;
+							board_[31] = move;				
 						}else{
-								TakenHit(1,attacked_space, move);
-								attacked = false;
-								if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){ //special fall
-								red_finished_shooting = true;
+								TakenHit(1,board_[31], move);
+								board_[32] = false;
+								if((board_[kCols] < 1 || board_[8] <= board_[33]) && (board_[kCols+6] < 1 || board_[4] < 1)){ //special fall
+								board_[29] = true;
 								}
-								if(red_finished_shooting == true){
-								turn++;
+								if(board_[29] == true){
+								board_[27]++;
 								}
 						}
 						break;
@@ -310,55 +340,130 @@ namespace open_spiel {
 				//If red doesn't have any armed fighters in intercept, neither player can shoot
 				if(board_[kCols] == 0 && board_[kCols+6] == 0)
 				{
-					red_finished_shooting = true;
-					blue_finished_shooting = true;
+					board_[29] = true;
+					board_[28] = true;
 				}
 				//If blue doesn't have any armed escorts, blue can no longer shoot
-				if(board_[5] == 0)
+				if(board_[6] == 0)
 				{
-					blue_finished_shooting = true;
+					board_[28] = true;
 				}
 				//If there are no armed: escorts, high strikes or low strikes. Neither player can shoot
-				if((board_[kCols] < 1 || board_[7] <= attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){
-					red_finished_shooting = true;
+				if((board_[kCols] < 1 || board_[8] <= board_[33]) && (board_[kCols+6] < 1 || board_[4] < 1)){
+					board_[29] = true;
 				}
-			}else if(phase == 4){
+
+				
+			}else if(board_[1] == 4){
 				switch(current_player_) {
 					case 0:
-						//Blue attacks with Armed escorts, can only attack intercepts
-						if (attacked == false){	
-							if(turn==0){
-								board_[3]--;
-								board_[4]++;
+						//Blue attacks with HighStrike & LowStrike, eventually UAV
+						if (board_[32] == false){	
+							if(board_[27]==0){
+								board_[4]--;
+								board_[5]++;
 							}else{
-								board_[7]--;
-								board_[8]++;
+								board_[8]--;
+								board_[9]++;
 							}
-							attacked = true;
-							turn++;
-							attacked_space = move;	
+							board_[32] = true;
+							board_[27]++;
+							board_[31] = move;	
 						}
 						break;
 
 					case 1:
-							TakenHit(1,attacked_space, move);
-							attacked = false;
-							turn--;
+							TakenHit(1,board_[31], move);
+							board_[32] = false;
+							board_[27]--;
 						break;
 
 				}
 
-				if((board_[3] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && turn == 0){
-					turn+=2;
+				if((board_[4] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && board_[27] == 0){
+					board_[27]+=2;
 				}
 				
 				//If red doesn't have any armed fighters in intercept, neither player can shoot
-				if(turn==2 && (board_[7] < 1 || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1))){
-					blue_finished_shooting = true;
+				if(board_[27]==2 && (board_[8] < 1 || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1))){
+					board_[28] = true;
+				}
+			}
+			}else{
+				board_[30] = false;
+				board_[27] = 0;
+
+				if(board_[1] == 1){
+
+					for(int i = 2; i<10; i+=2){
+						board_[i] = 0;
+						board_[i+1] = 0;
+					}
+					board_[13] = blue_pieces-board_[12];
+				}
+
+				if(board_[1] == 2){
+					if(board_[2] < 1){
+						board_[28] = true;
+						board_[27]++;
+					}
+					if(board_[2] < 1 && board_[4] < 1 && board_[8] < 1)
+					{
+						board_[29] = true;
+					}
+
+					if(board_[kCols+2] < 1){
+						board_[29] = true;
+						board_[28] = true;
+					}
+				}else if(board_[1] == 3){
+					if (board_[6] < 1){
+					board_[28] = true;
+					board_[27]++;
+					}
+					if ((board_[kCols] < 1 || board_[8] == board_[33]) && (board_[kCols+6] < 1 || board_[4] < 1)){
+						board_[29] = true;
+					}
+
+				}else if(board_[1] == 4)
+				{
+				board_[29] = true;
+				if((board_[4] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && board_[32] == false){
+					board_[27]+=2;
+				}
+				
+				//If red doesn't have any armed fighters in intercept, neither player can shoot
+				if(board_[27]==2 && (board_[8] < 1 || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && board_[32] == false){
+					board_[28] = true;
+				}
 				}
 			}
 
-			count++;
+			if(board_[1] == 2 ||board_[1] == 3 || board_[1] == 4){
+				if(board_[28] == true && board_[29] == true && board_[32] != true)
+				{
+					if(board_[1] == 4){
+						board_[1] = 1;
+						board_[30]=true;
+						board_[0]++;
+					}else{
+						board_[30]=true;
+						board_[1]++;
+					}
+					board_[27] = 0;
+					board_[28] = false;
+					board_[29] = false;
+				}
+			}
+			else if(board_[1] == 1){
+				if(board_[28] == true && board_[29] == true)
+				{
+					board_[27] = 0;
+					board_[28] = false;
+					board_[29] = false;
+					board_[1]++;
+					board_[30] = true;
+				}
 			}
 			if(HasLine(CurrentPlayer())){
 				outcome_ = current_player_;
@@ -370,163 +475,154 @@ namespace open_spiel {
 		std::vector<Action> CounterAirState::LegalActions() const {    //Klassen är counterAirState och metod är LegalActions
 			if (IsTerminal()) return {};    //Om spelet har vunnits return annars hoppa över
 			std::vector<Action> moves;    //Skapar en vector med alla legal moves
-
-			if(phase == 0)
+			//current_player_ = CurrentPlayer();
+			if(board_[1] == 0)
 			{
 				switch(CurrentPlayer())
 				{
 				case 0:
-					turn = turn + 2;
-					if(turn == 7){
-						moves.push_back(blue_pieces);
+					if(board_[27] == 6){
+						moves.push_back((blue_pieces - (board_[2] + board_[4] + board_[6] + board_[8])));
 					}else{
-						for(int amount = 0; amount <= blue_pieces; amount++) {
+						for(int amount = 0; amount <= (blue_pieces - (board_[2] + board_[4] + board_[6] + board_[8])); amount++) {
 							moves.push_back(amount);
 						}
 					}
 					break;
 				case 1:
-					turn = turn + 2;
-					if(turn == 8){
-						moves.push_back(red_sams);
-					}else if(turn == 4){
-							moves.push_back(red_fighters);
-					}else{
-						if(turn > 4)
-						{
-							for(int amount = 0; amount <= red_sams; amount++) {
+					if ((board_[kCols+2] + board_[kCols+4]) < red_fighters){
+						for (int amount = 0; amount <= (red_fighters-(board_[kCols+2]+board_[kCols+4])); amount++){
 							moves.push_back(amount);
-							}
-						}else{
-							for(int amount = 0; amount <= red_fighters; amount++) {
-							moves.push_back(amount);
-							}
 						}
-						
+					}
+					else{
+						for (int amount = 5; amount <= 5+(red_sams-(board_[kCols+6]+board_[kCols+8])); amount++){
+							moves.push_back(amount);
+						}
 					}
 					break;
 				}
 			}
-			else if (phase == 2){
-				if (new_phase == true){
-				if(board_[1] < 1){
-					blue_finished_shooting = true;
-					//current_player_=1;
-					turn++;
-				}
-				if(board_[3] < 1 && board_[7] < 1 && board_[1] < 1)
-				{
-					red_finished_shooting = true;
-				}
+			else if(board_[1] == 1){
 
-				if(board_[kCols+2] < 1){
-					red_finished_shooting = true;
-					blue_finished_shooting = true;
-				}
-				new_phase = false;
-
-				if (blue_finished_shooting == true && red_finished_shooting == true){
+				if (board_[30] == true){
 					moves.push_back(100);
 					return moves;
-				}
-				}
-				switch(CurrentPlayer())
-				{
-				case 0:
-						if(attacked == true){
-							if(board_[9] == 3)
-							{
-								moves.push_back(1);
-								if (board_[1] > 0){
-									moves.push_back(2);//Escort evades for hs/ls while blue has 3 hits
-								}
-							}else{
-								moves.push_back(0);
-								moves.push_back(1);
-								if (board_[1] > 0 && attacked_space != 1){
-									moves.push_back(2); //Escort evades for hs/ls
-								}
-							}
-						}else{
-						if(board_[1] > 0) {
-							if(board_[kCols + 2] > 0) {
-								moves.push_back(kCols+2);
-							}else{
-								red_finished_shooting = true;
-							}
-						}
-						}
-					break;
-				case 1:
-						if(attacked == true){
-							if(board_[kCols+10] == 3)
-							{
-								moves.push_back(1);
-							}else{
-								moves.push_back(0);
-								moves.push_back(1);
-							}
-						}else{
-							if(board_[kCols+2] > 0) {
-								if(board_[1] > 0) {
-									moves.push_back(1);
-								}else{
-									blue_finished_shooting = true;
-								}
-								if(board_[3] > 0) {
-									moves.push_back(3);
-								}
-								if(board_[7] > 0) {
-									moves.push_back(7);
-								}
-							}
-						}
-						break;
-				}
-			}else if(phase == 3){ 
-				//Red can attack if(A High strike>0 || A Low strike>0) and can only attack each low strike once (does not make them evading)
-				//Each fighter may be targeted only once in this phase even if still armed
-				//Blue can attack if(A Active SAM>0 || A AAA>0)
-				//if blue doesn't have any SEADs, blue can't shoot in this phase
-				if(new_phase == true){
-				if (board_[5] < 1){
-					blue_finished_shooting = true;
-					//current_player_=1;
-					turn++;
-				}
-				if ((board_[kCols] < 1 || board_[7] == attacked_low_strike) && (board_[kCols+6] < 1 || board_[3] < 1)){
-					red_finished_shooting = true;
-				}
-
-				if (blue_finished_shooting == true && red_finished_shooting == true){
-					moves.push_back(100);
-					return moves;
-				}
-				new_phase = false;
 				}
 
 				switch(CurrentPlayer())
 				{
 					case 0:
-							if(attacked == true){
-								if(board_[9] == 3)
+					if(board_[27] == 6){
+						moves.push_back((board_[13]));
+					}else{
+						for(int amount = 0; amount <= (board_[13]); amount++) {
+							moves.push_back(amount);
+						}
+					}
+					break;
+				case 1:
+					if ((board_[kCols+2] + board_[kCols+4]) < red_fighters){
+						for (int amount = 0; amount <= (red_fighters-(board_[kCols+2]+board_[kCols+4])); amount++){
+							moves.push_back(amount);
+						}
+					}
+					else{
+						for (int amount = 5; amount <= 5+(red_sams-(board_[kCols+6]+board_[kCols+8])); amount++){
+							moves.push_back(amount);
+						}
+					}
+					break;
+				}
+
+
+			}
+			else if (board_[1] == 2){
+				if (board_[30] == true){
+					moves.push_back(100);
+					return moves;
+				}
+				switch(CurrentPlayer())
+				{
+				case 0:
+					if(board_[32] == true){
+						if(board_[10] == 3){
+							moves.push_back(1);
+							if (board_[2] > 0){
+								moves.push_back(2);//Escort evades for hs/ls while blue has 3 hits
+							}
+						}else{
+							moves.push_back(0);
+							moves.push_back(1);
+							if (board_[2] > 0 && board_[31] != 2){
+								moves.push_back(2); //Escort evades for hs/ls
+							}
+						}
+					}else{
+						if(board_[2] > 0) {
+							if(board_[kCols + 2] > 0) {
+								moves.push_back(kCols+2);
+							}
+						}
+					}
+					break;
+				case 1:
+					if(board_[32] == true){
+						if(board_[kCols+10] == 3)
+						{
+							moves.push_back(1);
+						}else{
+							moves.push_back(0);
+							moves.push_back(1);
+						}
+					}else{
+						if(board_[kCols+2] > 0) {
+							if(board_[2] > 0) {
+								moves.push_back(2);
+							}
+							if(board_[4] > 0) {
+								moves.push_back(4);
+							}
+							if(board_[8] > 0) {
+								moves.push_back(8);
+							}
+						}
+					}
+					break;
+				}
+			}else if(board_[1] == 3){ 
+				//Red can attack if(A High strike>0 || A Low strike>0) and can only attack each low strike once (does not make them evading)
+				//Each fighter may be targeted only once in this phase even if still armed
+				//Blue can attack if(A Active SAM>0 || A AAA>0)
+				//if blue doesn't have any SEADs, blue can't shoot in this phase
+				if(board_[30] == true){
+				
+					moves.push_back(100);
+					return moves;
+				}
+
+				switch(CurrentPlayer())
+				{
+					case 0:
+							if(board_[32] == true){
+								if(board_[10] == 3)
 								{
 									moves.push_back(1);
 								}else{
-									if(attacked_space == 7)
+									if(board_[31] == 8)
 									{
 										moves.push_back(1);
 									}else{
 										moves.push_back(0);
 										moves.push_back(1);
-										if(board_[5] > 0)
+										if(board_[6] > 0)
 										{
 											moves.push_back(2);
 										}
 									}
 								}
 							}else{
-							if(board_[5] > 0) {
+							if(board_[6] > 0) {
 								if(board_[kCols] > 0) {
 									moves.push_back(kCols);
 								}
@@ -537,7 +633,7 @@ namespace open_spiel {
 							}
 						break;
 					case 1:
-							if(attacked == true){
+							if(board_[32] == true){
 								if(board_[kCols+10] == 3)
 								{
 									moves.push_back(1);
@@ -547,45 +643,31 @@ namespace open_spiel {
 								}
 							}else{
 
-								if(board_[3] > 0 && board_[kCols+6] > 0) {
-									moves.push_back(3);
+								if(board_[4] > 0 && board_[kCols+6] > 0) {
+									moves.push_back(4);
 								}
-								if(board_[7] > 0 && attacked_low_strike < board_[7] && board_[kCols] > 0) {
-									moves.push_back(7);
+								if(board_[8] > 0 && board_[33] < board_[8] && board_[kCols] > 0) {
+									moves.push_back(8);
 								}
 							}
 							break;
 					}
-			}else if(phase == 4){
+			}else if(board_[1] == 4){
 				//High strike attacks airbase and or any SAM box. Inflicts one hit
 				//UAV inflicts 1 hit on any SAM box on wave 1 & 3
 				//Low strike attacks any SAM or intercepts or airbase. Inflicts one hit on SAM
 				//Low strike turns armed intercepts to evading in airbase and armed fighters in airbase to evading.
-				if(new_phase == true){
-					red_finished_shooting = true;
-				if((board_[3] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && attacked == false){
-					turn+=2;
-				}
-				
-				//If red doesn't have any armed fighters in intercept, neither player can shoot
-				if(turn==2 && (board_[7] < 1 || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && attacked == false){
-					blue_finished_shooting = true;
-				}
-				
-				//kolla hur vi ska göra ifall bara low får skjuta i början, måste ändra dem över
-
-
-				if (blue_finished_shooting == true){moves.push_back(1);
-				}
-				new_phase = false;
+				if(board_[30] == true){
+				moves.push_back(100);
+				return moves;
 				}
 
 				switch(CurrentPlayer())
 				{
 					case 0:
-						if(turn == 0)
+						if(board_[27] == 0)
 						{
-							if(board_[3] > 0) {
+							if(board_[4] > 0) {
 								if(board_[kCols+4] > 0) {
 									moves.push_back(kCols+4);
 								}
@@ -596,8 +678,16 @@ namespace open_spiel {
 									moves.push_back(kCols+8);
 								}
 							}
-						}else if(turn == 2){
-							if(board_[7] > 0) {
+						}else if(board_[27] == 2){
+							/*if (board_[34] == 1 && (board_[0] == 1 || board_[0] == 3)){
+								if (board_[kCols + 6] > 0){
+									moves.push_back(kCols+6);
+								}
+								if (board_[kCols+8] > 0){
+									moves.push_back(kCols+8);
+								}
+							}*/
+							if(board_[8] > 0) {
 								if(board_[kCols+2] > 0) {
 								moves.push_back(kCols+2);
 								}
@@ -616,16 +706,16 @@ namespace open_spiel {
 						break;
 					case 1: //måste fixa airbase inte tar hits utan bara sätter till evading från low strike
 					//Ändra också att vi håller koll på hur många ggr vi skjutit en pjäs även om den inte sätts till evading
-						if(attacked == true){
-								if(attacked_space == (kCols+8) || attacked_space == (kCols+6))
+						if(board_[32] == true){
+								if(board_[31] == (kCols+8) || board_[31] == (kCols+6))
 								{
 									moves.push_back(3);
-								}else if(attacked_space == (kCols+4) && turn == 3){ 
+								}else if(board_[31] == (kCols+4) && board_[27] == 3){ 
 									moves.push_back(1); //kanske ändra eller ändra airbase
-								}else if(attacked_space == (kCols+4) && turn == 1)
+								}else if(board_[31] == (kCols+4) && board_[27] == 1)
 								{
 									moves.push_back(3);
-								}else if(attacked_space == (kCols+2) && turn == 3){
+								}else if(board_[31] == (kCols+2) && board_[27] == 3){
 									moves.push_back(6);
 								}
 							}
@@ -652,20 +742,17 @@ namespace open_spiel {
 		CounterAirState::CounterAirState(std::shared_ptr<const Game> game) : State(game) {
 			std::fill(begin(board_), end(board_), 0);
 			board_[0] = 1;
-			board_[12] = 4;
-			board_[1] = 6;
-			board_[kCols+2] = 4;
-			//board_[14] = 4;
+			board_[14] = 4;
+			board_[30] = true;
+			board_[34] = 1;
 		}
  
 		//vi kan lägga till namn på de olika platserna
 		std::string CounterAirState::ToString() const {
 			std::string str;
-			absl::StrAppend(&str, "turn: " + std::to_string(turn) + "\n");
-			absl::StrAppend(&str, "phase: " + std::to_string(phase) + "\n");
-			absl::StrAppend(&str, "BP: " + std::to_string(blue_pieces) + "\n");
-			absl::StrAppend(&str, "BFS: " + std::to_string(blue_finished_shooting) + "\n");
-			absl::StrAppend(&str, "RFS: " + std::to_string(red_finished_shooting) + "\n");
+			absl::StrAppend(&str, "phase: " + std::to_string(board_[1]) + "\n");
+			absl::StrAppend(&str, "BFS: " + std::to_string(board_[28]) + "\n");
+			absl::StrAppend(&str, "RFS: " + std::to_string(board_[29]) + "\n");
 			for (int r = 0; r < kRows; ++r) {
 				for (int c = 0; c < kCols; ++c) {
 					if(c == 0){
@@ -681,7 +768,16 @@ namespace open_spiel {
 					absl::StrAppend(&str, "\n");
 				}
 			}
-			absl::StrAppend(&str, cell_names[1*kCols + 12] + ": " + std::to_string(board_[1*kCols+12]) + " |");
+			absl::StrAppend(&str, "\n");
+			absl::StrAppend(&str, "UAV: " + std::to_string(board_[34]) + " |");
+			absl::StrAppend(&str,"State Info: ");
+			absl::StrAppend(&str,"Turn: " + std::to_string(board_[27]) + " |");
+			absl::StrAppend(&str,"BFS: " + std::to_string(board_[28]) + " |");
+			absl::StrAppend(&str, "RFS: " + std::to_string(board_[29]) + " |");
+			absl::StrAppend(&str, "NP: " + std::to_string(board_[30]) + " |");
+			absl::StrAppend(&str, "AS: " + std::to_string(board_[31]) + " |");
+			absl::StrAppend(&str, "AT: " + std::to_string(board_[32]) + " |");
+			absl::StrAppend(&str, "ATLowStrike: " + std::to_string(board_[33]) + " |");
 			absl::StrAppend(&str, "\n");
 			return str;
 		}
@@ -751,4 +847,3 @@ namespace open_spiel {
 
 	}  // namespace counter_air
 }  // namespace open_spiel
-
