@@ -35,36 +35,22 @@ namespace open_spiel {
         // Constants.
         inline constexpr int kNumPlayers = 2;
         inline constexpr int kRows = 2;  //ÄNDRAT
-        inline constexpr int kCols = 12;  //ÄNDRAT
-        inline constexpr int kNumCells = kRows * kCols + 1;
+        inline constexpr int kCols = 14/*12*/;  //ÄNDRAT
+        inline constexpr int kNumCells = kRows * kCols + 7;
         inline constexpr int kCellStates = 11;  // empty, 'x', and 'o'. ändra sen
-        
-        bool new_phase = true;
 
         //phase 0
-        int num_moves_ = 0;
-        int blue_pieces = 10; //Hur många pieces blå har kvar att lägga
-        int red_fighters = 4; //Hur många fighters röd har kvar att lägga
-        int red_sams = 4;   //Hur många sams röd har kvar att lägga
-        int phase = 0;  //Vilken phase vi är på
-        int turn = -1;   //Vems tur det är och för phase 0 vilken ruta man är på
-        int count = 1;
-
+        int constexpr blue_pieces = 10; //Hur många pieces blå har kvar att lägga
+        int constexpr red_fighters = 4; //Hur många fighters röd har kvar att lägga
+        int constexpr red_sams = 4;   //Hur många sams röd har kvar att lägga  
         bool was_blue = true;
-        bool initilazation = true;
-
-        //phase 2
-        int attacked_space = 0;
 
         //phase 3
-        int attacked_low_strike = 0;
 
-        bool blue_finished_shooting = false;
-        bool red_finished_shooting = false;
-        bool attacked = false;
+        bool fin = false;
 
-        std::array<std::string, kNumCells> cell_names = {"Wave", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard",
-        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard"};
+        std::array<std::string, kNumCells> cell_names = {"Wave", "Phase", "A Escort", "E Escort", "A High Strike", "E High Strike", "A Sead", "E sead", "A Low Strike", "E Low Strike", "Hits", "Maintenance", "Graveyard", "tmpieces", 
+        "A AAA", "E AAA", "A Intercept", "E Intercept", "A Airbase","E Airbase","A Active Sam", "E Active Sam", "A Passive Sam", "E Passive Sam", "Hits", "Maintenance", "Graveyard", "turn", "BFS", "RFS", "NP", "AttackedSpace", "Attacked", "AttackedLowStrike", "UAV"};
 
         //Board representation:
         //{3,0,2,5...}
@@ -96,7 +82,7 @@ namespace open_spiel {
             Player outcome() const { return outcome_; }
 
             // Only used by Ultimate Tic-Tac-Toe.
-            void SetCurrentPlayer(Player player){ current_player_ = player; }
+            //void SetCurrentPlayer(Player player){ current_player_ = player; } //Kan ta bort?
 
         protected:
             std::array<int, kNumCells> board_;
@@ -140,4 +126,3 @@ namespace open_spiel {
 }  // namespace open_spiel
 
 #endif  // OPEN_SPIEL_GAMES_COUNTER_AIR_H_
-
