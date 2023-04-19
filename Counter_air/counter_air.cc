@@ -45,7 +45,7 @@ namespace open_spiel {
 				return true;
 			}*/
 			
-			if(board[1] == 4 && board[0] == 5 && board[35] == 3){
+			if(board[1] == 1 && board[0] == 6 && board[35] == 3){
 				return true;
 			}
 			if(board[35] == player){
@@ -480,6 +480,13 @@ namespace open_spiel {
 							board_[27]++;
 							board_[31] = move;	
 						}
+						if(move == kCols+4){
+							board_[36]++;
+						}else if (move == kCols+6){
+							board_[37]++;
+						}else if(move == kCols+8){
+							board_[38]++;
+						}
 						break;
 
 					case 1:
@@ -490,14 +497,14 @@ namespace open_spiel {
 
 				}
 
-				if((board_[4] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && board_[27] == 0){
+				if((board_[4] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1) || (board_[kCols+4] <= board_[36] && board_[kCols+6] <= board_[37] && board_[kCols+8] <= board_[38])) && board_[27] == 0){
 					board_[27]+=2;
 				}
-				if ((board_[kCols+6] < 1 && board_[kCols+8] < 1) && board_[34] == 1){
+				if (((board_[kCols+6] < 1 && board_[kCols+8] < 1) || (board_[kCols+6] <= board_[37] && board_[kCols+8] <= board_[38])) && board_[34] == 1){
 					board_[34] = 0;
 				}
 				//
-				if(board_[27]==2 && ((board_[8] < 1) || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1))){
+				if(board_[27]==2 && ((board_[8] < 1) || (board_[kCols+2] < 1 && board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1) || (board_[kCols+4] <= board_[36] && board_[kCols+6] <= board_[37] && board_[kCols+8] <= board_[38]))){
 					if (board_[34] == 1 && (board_[0] == 1 || board_[0] == 3)){
 						
 					}else{
@@ -547,6 +554,7 @@ namespace open_spiel {
 				}else if(board_[1] == 4)
 				{
 				board_[29] = true;
+
 				if((board_[4] < 1 || (board_[kCols+4] < 1 && board_[kCols+6] < 1 && board_[kCols+8] < 1)) && board_[32] == false){
 					board_[27]+=2;
 				}
@@ -566,6 +574,9 @@ namespace open_spiel {
 					if(board_[1] == 4){
 						board_[1] = 1;
 						board_[30]=true;
+						board_[36] = 0;
+						board_[37] = 0;
+						board_[38] = 0;
 						board_[0]++;
 					}else if(board_[1] == 3)
 					{
@@ -801,27 +812,26 @@ namespace open_spiel {
 
 				switch(CurrentPlayer())
 				{
-					if (board_[kCols])
 					case 0:
 						if(board_[27] == 0)
 						{
 							if(board_[4] > 0) {
-								if(board_[kCols+4] > 0) {
+								if(board_[kCols+4] > 0 && (board_[kCols+4] > board_[36])) {
 									moves.push_back(kCols+4);
 								}
-								if(board_[kCols+6] > 0){
+								if(board_[kCols+6] > 0 && (board_[kCols+6] > board_[37])){
 									moves.push_back(kCols+6);
 								}
-								if(board_[kCols+8] > 0){
+								if(board_[kCols+8] > 0 && (board_[kCols+8] > board_[38])){
 									moves.push_back(kCols+8);
 								}
 							}
 						}else if(board_[27] == 2){
 							if (board_[34] == 1 && (board_[0] == 1 || board_[0] == 3)){
-								if (board_[kCols + 6] > 0){
+								if (board_[kCols + 6] > 0 && (board_[kCols+6] > board_[37])){
 									moves.push_back(kCols+6);
 								}
-								if (board_[kCols+8] > 0){
+								if (board_[kCols+8] > 0 && (board_[kCols+8] > board_[38])){
 									moves.push_back(kCols+8);
 								}
 							}
@@ -829,13 +839,13 @@ namespace open_spiel {
 								if(board_[kCols+2] > 0) {
 								moves.push_back(kCols+2);
 								}
-								if(board_[kCols+4] > 0){
+								if(board_[kCols+4] > 0 && (board_[kCols+4] > board_[36])){
 									moves.push_back(kCols+4);
 								}
-								if(board_[kCols+6] > 0){
+								if(board_[kCols+6] > 0 && (board_[kCols+6] > board_[37])){
 									moves.push_back(kCols+6);
 								}
-								if(board_[kCols+8] > 0){
+								if(board_[kCols+8] > 0 && (board_[kCols+8] > board_[38])){
 									moves.push_back(kCols+8);
 								}
 							}
@@ -843,7 +853,7 @@ namespace open_spiel {
 
 						break;
 					case 1: //måste fixa airbase inte tar hits utan bara sätter till evading från low strike
-					//Ändra också att vi håller koll på hur många ggr vi skjutit en pjäs även om den inte sätts till evading
+					//Ändra också att vi håller koll på hur många ggr vi skjutit en pjäs även om den inte sätts till evading FIXED
 						if(board_[32] == true){
 								if(board_[31] == (kCols+8) || board_[31] == (kCols+6))
 								{
@@ -915,6 +925,9 @@ namespace open_spiel {
 			absl::StrAppend(&str, "AT: " + std::to_string(board_[32]) + " |");
 			absl::StrAppend(&str, "ATLowStrike: " + std::to_string(board_[33]) + " |");
 			absl::StrAppend(&str, "HW: " + std::to_string(board_[35]) + " |");
+			absl::StrAppend(&str, "ATBase: " + std::to_string(board_[36]) + " |");
+			absl::StrAppend(&str, "ATActive: " + std::to_string(board_[37]) + " |");
+			absl::StrAppend(&str, "ATPassive: " + std::to_string(board_[38]) + " |");
 			absl::StrAppend(&str, "\n");
 			absl::StrAppend(&str, "______________________________________________________________________________________________");
 			absl::StrAppend(&str, "\n");
@@ -954,12 +967,70 @@ namespace open_spiel {
 			absl::Span<float> values) const {
 			SPIEL_CHECK_GE(player, 0);
 			SPIEL_CHECK_LT(player, num_players_);
-
 			// Treat `values` as a 2-d tensor.
-			TensorView<1> view(values, { kNumCells }, true);
-			for (int cell = 0; cell < kNumCells; ++cell) {
-				view[{static_cast<int>(board_[cell])}] = 1.0;
+			std::fill(values.begin(), values.end(), 0);
+			//Wave, uses 6 places (last index 5)
+			values[board_[0]] = 1.0f;
+			//Phase, uses 5 places (last index 10)
+			values[6+board_[1]] = 1.0f;
+			//A Escort -> E Low strike
+			for (int i = 2; i <= 9; i++){
+				//How many of each with one-hot encoding, eg: |0 0 0 1 0 0 0 0 0 0| represents 3 out of a maximum of 10 of something
+				for (int j = 0; j <= 10; j++){
+					if (board_[i] == j){
+						values[(i-1)*11 + board_[i]] = 1.0f;
+					}
+				}
 			}
+			//Hits (blue)
+			values[110+board_[10]] = 1.0f;
+			//Maintenance (blue)
+			values[115+board_[11]] = 1.0f;
+			//Graveyard (blue)
+			values[117+board_[12]] = 1.0f;
+			//tmpieces
+			values[128+board_[13]] = 1.0f;
+			//A AAA -> E Passive SAM
+			for (int i = 0; i <= 9; i++){
+				//How many of each with one-hot encoding, eg: |1 0 0 0 0| represents 0 out of a maximum of 4 of something
+				for (int j = 0; j <= 4; j++){
+					if (board_[kCols+i] == j){
+						values[139+(5*i) + board_[kCols+i]] = 1.0f;
+					}
+				}
+			}
+			//Hits (red)
+			values[184+board_[kCols+10]] = 1.0f;
+			//Graveyard (red)
+			values[189+board_[kCols+12]] = 1.0f;
+			//turn
+			values[197+board_[27]] = 1.0f;
+			//UAV
+			values[207+board_[34]] = 1.0f;
+			//BFS
+			values[209+board_[28]] = 1.0f;
+			//RFS
+			values[211+board_[29]] = 1.0f;
+			//NP
+			values[213+board_[30]] = 1.0f;
+			//AS
+			values[215+board_[31]] = 1.0f;
+			//AT
+			values[224+board_[32]] = 1.0f;
+			//ATLowStrike
+			values[226+board_[33]] = 1.0f;
+			//HW
+			values[236+board_[35]] = 1.0f;
+			//ATBase
+			values[240+board_[36]] = 1.0f;
+			//ATActive
+			values[245+board_[37]] = 1.0f;
+			//ATPassive
+			values[250+board_[38]] = 1.0f;
+
+			/*for (int i = 0; i <= 255; i++){
+				std::cout << values[i] <<  " | " << std::endl;
+			}*/
 		}
 
 		/*//kanske ej för mcts hoppas pray my lord
