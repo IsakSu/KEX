@@ -186,7 +186,13 @@ namespace open_spiel {
 					board_[player*kCols + 10]+=2;
 				}else if(evade == 6 && board_[1] == 4)
 				{
-					board_[kCols+2]--;
+					if(board_[kCols+2] != 0)
+					{
+						board_[kCols+2]--;
+					}else{
+						board_[kCols+3]--;
+					}
+
 					board_[kCols+5]++;
 				}else{
 					if (board_[1] == 2 && evade == 2){
@@ -480,11 +486,11 @@ namespace open_spiel {
 							board_[27]++;
 							board_[31] = move;	
 						}
-						if(move == kCols+4){
+						if(move == kCols+4 || move == kCols+5){
 							board_[36]++;
-						}else if (move == kCols+6){
+						}else if (move == kCols+6 || move == kCols+7){
 							board_[37]++;
-						}else if(move == kCols+8){
+						}else if(move == kCols+8 || move == kCols+9){
 							board_[38]++;
 						}
 						break;
@@ -818,36 +824,58 @@ namespace open_spiel {
 							if(board_[4] > 0) {
 								if(board_[kCols+4] > 0 && (board_[kCols+4] > board_[36])) {
 									moves.push_back(kCols+4);
+								}else if(board_[kCols+5] > 0 && ((board_[kCols+4]+board_[kCols+5]) > board_[36])){
+									moves.push_back(kCols+5);
 								}
+
 								if(board_[kCols+6] > 0 && (board_[kCols+6] > board_[37])){
 									moves.push_back(kCols+6);
+								}else if(board_[kCols+7] > 0 && ((board_[kCols+6]+board_[kCols+7]) > board_[37])){
+									moves.push_back(kCols+7);
 								}
+
 								if(board_[kCols+8] > 0 && (board_[kCols+8] > board_[38])){
 									moves.push_back(kCols+8);
+								}else if(board_[kCols+9] > 0 && ((board_[kCols+8]+board_[kCols+9]) > board_[38])){
+									moves.push_back(kCols+9);
 								}
 							}
 						}else if(board_[27] == 2){
 							if (board_[34] == 1 && (board_[0] == 1 || board_[0] == 3)){
 								if (board_[kCols + 6] > 0 && (board_[kCols+6] > board_[37])){
 									moves.push_back(kCols+6);
+								}else if(board_[kCols + 7] > 0 && ((board_[kCols+6]+board_[kCols+7]) > board_[37])){
+									moves.push_back(kCols+7);
 								}
+
 								if (board_[kCols+8] > 0 && (board_[kCols+8] > board_[38])){
 									moves.push_back(kCols+8);
+								}else if(board_[kCols + 9] > 0 && ((board_[kCols+8]+board_[kCols+9]) > board_[38])){
+									moves.push_back(kCols+9);
 								}
 							}
 							else if(board_[8] > 0) {
-								if(board_[kCols+2] > 0) {
+								if(board_[kCols+2] > 0 || board_[kCols+3] > 0) {
 								moves.push_back(kCols+2);
 								}
 								if(board_[kCols+4] > 0 && (board_[kCols+4] > board_[36])){
 									moves.push_back(kCols+4);
+								}else if(board_[kCols+5] > 0 && ((board_[kCols+4]+board_[kCols+5]) > board_[36])){
+									moves.push_back(kCols+5);
 								}
+
 								if(board_[kCols+6] > 0 && (board_[kCols+6] > board_[37])){
 									moves.push_back(kCols+6);
+								}else if(board_[kCols+7] > 0 && ((board_[kCols+6]+board_[kCols+7]) > board_[37])){
+									moves.push_back(kCols+7);
 								}
+
 								if(board_[kCols+8] > 0 && (board_[kCols+8] > board_[38])){
 									moves.push_back(kCols+8);
+								}else if(board_[kCols+9] > 0 && ((board_[kCols+8]+board_[kCols+9]) > board_[38])){
+									moves.push_back(kCols+9);
 								}
+
 							}
 						}
 
@@ -855,15 +883,15 @@ namespace open_spiel {
 					case 1: //måste fixa airbase inte tar hits utan bara sätter till evading från low strike
 					//Ändra också att vi håller koll på hur många ggr vi skjutit en pjäs även om den inte sätts till evading FIXED
 						if(board_[32] == true){
-								if(board_[31] == (kCols+8) || board_[31] == (kCols+6))
+								if(board_[31] == (kCols+8) || board_[31] == (kCols+6) || board_[31] == (kCols+9) || board_[31] == (kCols+7))
 								{
 									moves.push_back(3);
-								}else if(board_[31] == (kCols+4) && board_[27] == 3){ 
+								}else if((board_[31] == (kCols+4) || board_[31] == (kCols+5)) && board_[27] == 3){ 
 									moves.push_back(1); //kanske ändra eller ändra airbase
-								}else if(board_[31] == (kCols+4) && board_[27] == 1)
+								}else if((board_[31] == (kCols+4) || board_[31] == (kCols+5)) && board_[27] == 1)
 								{
 									moves.push_back(3);
-								}else if(board_[31] == (kCols+2) && board_[27] == 3){
+								}else if((board_[31] == (kCols+2) || board_[31] == (kCols+3)) && board_[27] == 3){
 									moves.push_back(6);
 								}
 							}
@@ -940,11 +968,17 @@ namespace open_spiel {
 		}
 
 		std::vector<double> CounterAirState::Returns() const {
+			double point = 0.0;
+			double hits1 = ((board_[12]+2)*4+board_[10]);
+			double hits2 = (board_[kCols+12]*4+board_[kCols+10]);
+
 			if (HasLine(Player{ 0 })) {
-				return { 1.0, -1.0 };
+				point = (hits2 - hits1)/hits2;
+				return { point, -point };
 			}
 			else if (HasLine(Player{ 1 })) {
-				return { -1.0, 1.0 };
+				point = (hits1-hits2)/hits1;
+				return { -point, point };
 			}
 			else {
 				return { 0.0, 0.0 };
@@ -968,65 +1002,58 @@ namespace open_spiel {
 			SPIEL_CHECK_GE(player, 0);
 			SPIEL_CHECK_LT(player, num_players_);
 			// Treat `values` as a 2-d tensor.
-			std::fill(values.begin(), values.end(), 0);
+			std::fill(values.begin(), values.end(), 0.);
+			SPIEL_CHECK_EQ(values.size(), kNumCells);
 			//Wave, uses 6 places (last index 5)
-			values[board_[0]] = 1.0f;
+			values[board_[0]-1] = 1.0f;
 			//Phase, uses 5 places (last index 10)
 			values[6+board_[1]] = 1.0f;
 			//A Escort -> E Low strike
 			for (int i = 2; i <= 9; i++){
-				//How many of each with one-hot encoding, eg: |0 0 0 1 0 0 0 0 0 0| represents 3 out of a maximum of 10 of something
-				for (int j = 0; j <= 10; j++){
-					if (board_[i] == j){
-						values[(i-1)*11 + board_[i]] = 1.0f;
-					}
-				}
+				//How many of each with one-hot encoding, eg: |0 0 0 1 0 0 0 0 0 0 0| represents 3 out of a maximum of 10 of something and minimum of 0
+				values[(i-1)*11 + board_[i]] = 1.0f;
 			}
 			//Hits (blue)
-			values[110+board_[10]] = 1.0f;
+			values[99+board_[10]] = 1.0f;
 			//Maintenance (blue)
-			values[115+board_[11]] = 1.0f;
+			values[104+board_[11]] = 1.0f;
 			//Graveyard (blue)
-			values[117+board_[12]] = 1.0f;
+			values[106+board_[12]] = 1.0f;
 			//tmpieces
-			values[128+board_[13]] = 1.0f;
+			values[117+board_[13]] = 1.0f;
 			//A AAA -> E Passive SAM
 			for (int i = 0; i <= 9; i++){
 				//How many of each with one-hot encoding, eg: |1 0 0 0 0| represents 0 out of a maximum of 4 of something
-				for (int j = 0; j <= 4; j++){
-					if (board_[kCols+i] == j){
-						values[139+(5*i) + board_[kCols+i]] = 1.0f;
-					}
-				}
+				values[128+(5*i) + board_[kCols+i]] = 1.0f;
 			}
 			//Hits (red)
-			values[184+board_[kCols+10]] = 1.0f;
+			values[178+board_[kCols+10]] = 1.0f;
 			//Graveyard (red)
-			values[189+board_[kCols+12]] = 1.0f;
+			values[183+board_[kCols+12]] = 1.0f;
 			//turn
-			values[197+board_[27]] = 1.0f;
+			values[192+board_[27]] = 1.0f;
 			//UAV
-			values[207+board_[34]] = 1.0f;
+			values[212+board_[34]] = 1.0f;
 			//BFS
-			values[209+board_[28]] = 1.0f;
+			values[214+board_[28]] = 1.0f;
 			//RFS
-			values[211+board_[29]] = 1.0f;
+			values[216+board_[29]] = 1.0f;
 			//NP
-			values[213+board_[30]] = 1.0f;
+			values[218+board_[30]] = 1.0f;
 			//AS
-			values[215+board_[31]] = 1.0f;
+			values[220+board_[31]] = 1.0f;
 			//AT
-			values[224+board_[32]] = 1.0f;
+			values[243+board_[32]] = 1.0f;
 			//ATLowStrike
-			values[226+board_[33]] = 1.0f;
+			values[245+board_[33]] = 1.0f;
 			//HW
-			values[236+board_[35]] = 1.0f;
+			values[256+board_[35]] = 1.0f;
 			//ATBase
-			values[240+board_[36]] = 1.0f;
+			values[260+board_[36]] = 1.0f;
 			//ATActive
-			values[245+board_[37]] = 1.0f;
+			values[265+board_[37]] = 1.0f;
 			//ATPassive
-			values[250+board_[38]] = 1.0f;
+			values[270+board_[38]] = 1.0f;
 
 			/*for (int i = 0; i <= 255; i++){
 				std::cout << values[i] <<  " | " << std::endl;
