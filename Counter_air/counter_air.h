@@ -36,7 +36,7 @@ namespace open_spiel {
         inline constexpr int kNumPlayers = 2;
         inline constexpr int kRows = 2;  //ÄNDRAT
         inline constexpr int kCols = 14/*12*/;  //ÄNDRAT
-        inline constexpr int kNumCells = 256 /*kRows * kCols + 8*/;
+        inline constexpr int kNumCells =276 /*kRows * kCols + 8*/;
         inline constexpr int kCellStates = 11;  // empty, 'x', and 'o'. ändra sen
 
         //phase 0
@@ -109,7 +109,7 @@ namespace open_spiel {
    	    absl::optional<double> UtilitySum() const override { return 0; }
             double MaxUtility() const override { return 2; }
             std::vector<int> ObservationTensorShape() const override {
-                return { kNumCells};
+                return { kNumCells, 1};
             }
             int MaxGameLength() const override { return 1000000; }
             std::string ActionToString(Player player, Action action_id) const override;
